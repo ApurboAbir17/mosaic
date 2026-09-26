@@ -1,13 +1,27 @@
 @media (max-width: 800px) {
+  body {
+    overflow: auto;
+  }
+
   .app-shell {
     display: block;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .app-content {
+    height: auto;
+    overflow: visible;
   }
 
   .sidebar {
     bottom: 0;
+    height: auto;
     box-shadow: var(--shadow-card);
     left: 0;
     max-width: 17rem;
+    overflow-y: auto;
     position: fixed;
     top: 0;
     transform: translateX(-100%);
@@ -46,7 +60,16 @@
     grid-template-columns: 1fr;
   }
 
+  .explore-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .explore-intro {
+    min-height: 20rem;
+  }
+
   .media-row {
+    gap: var(--space-4);
     grid-auto-columns: minmax(9rem, 28vw);
   }
 
@@ -80,10 +103,20 @@
 
   .featured-media,
   .featured-media-content {
-    min-height: 28rem;
+    min-height: 26rem;
   }
 
   .media-row {
+    gap: var(--space-4);
     grid-auto-columns: minmax(8.5rem, 42vw);
+  }
+
+  .media-row-shell {
+    gap: var(--space-2);
+  }
+
+  .row-control {
+    height: 2.1rem;
+    width: 2.1rem;
   }
 }
