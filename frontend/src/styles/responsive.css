@@ -40,6 +40,14 @@
     transform: translateX(0);
   }
 
+  .sidebar-collapsed .sidebar-label {
+    display: inline;
+  }
+
+  .sidebar-collapsed .nav-link {
+    justify-content: flex-start;
+  }
+
   .sidebar-overlay {
     background: rgb(0 0 0 / 52%);
     border: 0;
