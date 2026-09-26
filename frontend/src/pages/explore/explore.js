@@ -30,14 +30,16 @@ function escapeHtml(value) {
 function exploreMarkup() {
   return `
     <section class="explore-page" aria-labelledby="explore-title">
-      <div class="explore-intro">
-        <p class="eyebrow">Public discovery</p>
-        <h1 id="explore-title">Find your next <span>favorite world.</span></h1>
-        <p class="hero-copy">Browse what people are watching, discovering, and talking about right now.</p>
+      <div class="explore-hero">
+        <div class="explore-intro">
+          <p class="eyebrow">Public discovery</p>
+          <h1 id="explore-title">Find your next <span>favorite world.</span></h1>
+          <p class="hero-copy">Browse what people are watching, discovering, and talking about right now.</p>
+        </div>
+        <section class="featured-media" id="featured-media" aria-label="Featured media">
+          <div class="featured-loading">${loadingCards(1)}</div>
+        </section>
       </div>
-      <section class="featured-media" id="featured-media" aria-label="Featured media">
-        <div class="featured-loading">${loadingCards(1)}</div>
-      </section>
       <div class="explore-sections">
         ${sections.map(({ id, title }) => `
           <section class="media-section" aria-labelledby="${id}-title">
@@ -48,7 +50,11 @@ function exploreMarkup() {
               </div>
               <span class="section-status" id="${id}-status">Loading</span>
             </div>
-            <div class="media-row" id="${id}-row">${loadingCards()}</div>
+            <div class="media-row-shell">
+              <button class="row-control" type="button" data-row-control="previous" data-row="${id}" aria-label="Show previous ${title} titles">‹</button>
+              <div class="media-row" id="${id}-row">${loadingCards()}</div>
+              <button class="row-control" type="button" data-row-control="next" data-row="${id}" aria-label="Show more ${title} titles">›</button>
+            </div>
           </section>
         `).join("")}
       </div>
@@ -90,7 +96,7 @@ async function loadSection(section) {
 
   try {
     const items = await section.load();
-    row.innerHTML = items.length ? mediaRow(items.slice(0, 10)) : emptyState();
+    row.innerHTML = items.length ? mediaRow(items) : emptyState();
     status.textContent = items.length ? `${items.length} titles` : "No results";
   } catch (error) {
     setSectionError(section, "Could not load this section.");
@@ -131,8 +137,41 @@ function bindRetryHandlers(container) {
   });
 }
 
+function updateRowControls(rowShell) {
+  const row = rowShell.querySelector(".media-row");
+  const previous = rowShell.querySelector("[data-row-control='previous']");
+  const next = rowShell.querySelector("[data-row-control='next']");
+  const hasOverflow = row.scrollWidth > row.clientWidth + 1;
+
+  previous.disabled = !hasOverflow || row.scrollLeft <= 1;
+  next.disabled = !hasOverflow || row.scrollLeft + row.clientWidth >= row.scrollWidth - 1;
+}
+
+function bindRowControls(container) {
+  container.querySelectorAll(".media-row-shell").forEach((rowShell) => {
+    const row = rowShell.querySelector(".media-row");
+    const step = () => row.clientWidth * 0.86;
+
+    rowShell.querySelectorAll("[data-row-control]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const direction = button.dataset.rowControl === "next" ? 1 : -1;
+        row.scrollBy({ left: direction * step(), behavior: "smooth" });
+      });
+    });
+
+    row.addEventListener("scroll", () => updateRowControls(rowShell), { passive: true });
+    updateRowControls(rowShell);
+  });
+
+  window.addEventListener("resize", () => {
+    container.querySelectorAll(".media-row-shell").forEach(updateRowControls);
+  });
+}
+
 export async function renderExplorePage(container) {
+  container.classList.add("explore-shell");
   container.innerHTML = exploreMarkup();
   await Promise.all([loadFeatured(), ...sections.map(loadSection)]);
   bindRetryHandlers(container);
+  bindRowControls(container);
 }
