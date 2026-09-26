@@ -2,6 +2,8 @@ const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 const responseCache = new Map();
 const restrictedContentPattern = /\b(?:adult|bondage|erotic|xxx|porn(?:ographic)?|sex(?:ual)?|nude|nudity|intercourse|fetish|lust)\b/i;
+const TARGET_ROW_SIZE = 20;
+const MAX_PAGES_PER_SECTION = 5;
 
 function getApiKey() {
   const apiKey = import.meta.env?.VITE_TMDB_API_KEY || window.MOSAIC_CONFIG?.tmdbApiKey;
@@ -74,10 +76,34 @@ export function normalizeMedia(item, type) {
 }
 
 async function getMedia(path, type, params = {}) {
-  const data = await request(path, params);
-  return (data.results ?? [])
-    .filter((item) => !isRestrictedContent(item))
-    .map((item) => normalizeMedia(item, type));
+  const safeItems = [];
+  const seen = new Set();
+
+  for (let page = 1; page <= MAX_PAGES_PER_SECTION && safeItems.length < TARGET_ROW_SIZE; page += 1) {
+    const data = await request(path, { ...params, page });
+
+    for (const item of data.results ?? []) {
+      const itemType = type === "multi" ? item.media_type : type;
+      const key = `${itemType}:${item.id}`;
+
+      if (!itemType || seen.has(key) || isRestrictedContent(item)) {
+        continue;
+      }
+
+      seen.add(key);
+      safeItems.push(normalizeMedia(item, type));
+
+      if (safeItems.length === TARGET_ROW_SIZE) {
+        break;
+      }
+    }
+
+    if (page >= (data.total_pages ?? page)) {
+      break;
+    }
+  }
+
+  return safeItems;
 }
 
 export function getTrending() {
