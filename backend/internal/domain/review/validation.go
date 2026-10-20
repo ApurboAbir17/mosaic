@@ -100,6 +100,20 @@ func ParseFilters(values url.Values) (Filters, error) {
 		}
 		filters.Offset = value
 	}
+
+	mediaType := strings.TrimSpace(values.Get("media_type"))
+	providerID := strings.TrimSpace(values.Get("provider_media_id"))
+	if (mediaType == "") != (providerID == "") {
+		return Filters{}, fmt.Errorf("%w: media_type and provider_media_id must be provided together", ErrInvalidInput)
+	}
+	if mediaType != "" {
+		normalizedType, normalizedID, err := ParseMediaRef(mediaType, providerID)
+		if err != nil {
+			return Filters{}, err
+		}
+		filters.MediaType = normalizedType
+		filters.ProviderMediaID = normalizedID
+	}
 	return filters, nil
 }
 

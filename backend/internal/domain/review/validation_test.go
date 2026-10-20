@@ -90,6 +90,24 @@ func TestParseFilters(t *testing.T) {
 	}
 }
 
+func TestParseFiltersMediaLookup(t *testing.T) {
+	filters, err := ParseFilters(url.Values{"media_type": {"Movie"}, "provider_media_id": {" 157336 "}})
+	if err != nil {
+		t.Fatalf("ParseFilters() error = %v", err)
+	}
+	if filters.MediaType != "movie" || filters.ProviderMediaID != "157336" {
+		t.Fatalf("ParseFilters() = %+v", filters)
+	}
+
+	// A partial pair is a mistake, not an unfiltered list.
+	if _, err := ParseFilters(url.Values{"media_type": {"movie"}}); !errors.Is(err, ErrInvalidInput) {
+		t.Fatal("media_type without provider_media_id was accepted")
+	}
+	if _, err := ParseFilters(url.Values{"provider_media_id": {"157336"}}); !errors.Is(err, ErrInvalidInput) {
+		t.Fatal("provider_media_id without media_type was accepted")
+	}
+}
+
 func TestParseMediaRef(t *testing.T) {
 	mediaType, id, err := ParseMediaRef("Movie", " 157336 ")
 	if err != nil || mediaType != "movie" || id != "157336" {

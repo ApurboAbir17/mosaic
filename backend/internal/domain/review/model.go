@@ -53,6 +53,10 @@ type Filters struct {
 	Sort       string
 	Limit      int
 	Offset     int
+	// MediaType + ProviderMediaID narrow the list to one title, which is how
+	// Media Details finds the signed-in user's own review for that title.
+	MediaType       string
+	ProviderMediaID string
 }
 
 type ListResult struct {

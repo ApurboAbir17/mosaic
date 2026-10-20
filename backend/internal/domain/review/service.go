@@ -135,6 +135,11 @@ func (s *Service) ListOwned(ctx context.Context, userID string, filters Filters)
 		args = append(args, filters.Type)
 		next++
 	}
+	if filters.ProviderMediaID != "" {
+		where += fmt.Sprintf(" AND mi.media_type = $%d AND mi.provider_media_id = $%d", next, next+1)
+		args = append(args, filters.MediaType, filters.ProviderMediaID)
+		next += 2
+	}
 	if filters.Visibility != "all" {
 		where += fmt.Sprintf(" AND r.visibility = $%d", next)
 		args = append(args, filters.Visibility)
