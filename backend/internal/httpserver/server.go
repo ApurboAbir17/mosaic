@@ -33,6 +33,8 @@ func New(cfg config.Config, pool *pgxpool.Pool) http.Handler {
 		mux.HandleFunc("/api/v1/favorites/media", collectionHandler.Favorites)
 		mux.HandleFunc("/api/v1/watchlist", collectionHandler.Watchlist)
 		mux.HandleFunc("/api/v1/watchlist/", collectionHandler.Watchlist)
+		mux.HandleFunc("/api/v1/ratings", collectionHandler.Ratings)
+		mux.HandleFunc("/api/v1/ratings/", collectionHandler.Ratings)
 	}
 
 	return withCORS(cfg.AllowedOrigin, mux)

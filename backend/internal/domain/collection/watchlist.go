@@ -82,11 +82,17 @@ func (s *Service) SetStatus(ctx context.Context, userID string, itemID int64, st
 	return s.Get(ctx, userID, itemID)
 }
 
-// RemoveWatchlist takes a title off the watchlist. The row itself is kept
-// while the title is still saved to the collection or marked as a favorite, so
-// the other lists are not affected.
+// RemoveWatchlist takes a title off the watchlist. The row itself is kept while
+// the title still holds any other personal state: collection membership, a
+// favorite, a rating or a review.
 func (s *Service) RemoveWatchlist(ctx context.Context, userID string, itemID int64) error {
-	result, err := s.db.Exec(ctx, `UPDATE user_media SET status = NULL, updated_at = now()
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("begin watchlist removal: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	result, err := tx.Exec(ctx, `UPDATE user_media SET status = NULL, updated_at = now()
 		WHERE id = $1 AND user_id = $2 AND status IS NOT NULL`, itemID, userID)
 	if err != nil {
 		return fmt.Errorf("remove watchlist item: %w", err)
@@ -94,10 +100,11 @@ func (s *Service) RemoveWatchlist(ctx context.Context, userID string, itemID int
 	if result.RowsAffected() == 0 {
 		return ErrNotFound
 	}
-	if _, err := s.db.Exec(ctx, `DELETE FROM user_media
-		WHERE id = $1 AND user_id = $2 AND in_collection = FALSE AND is_favorite = FALSE`,
-		itemID, userID); err != nil {
-		return fmt.Errorf("delete empty user media row: %w", err)
+	if err := deleteIfEmpty(ctx, tx, userID, itemID); err != nil {
+		return err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit watchlist removal: %w", err)
 	}
 	return nil
 }

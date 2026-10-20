@@ -26,6 +26,8 @@ type Item struct {
 	InCollection bool       `json:"in_collection"`
 	IsFavorite   bool       `json:"is_favorite"`
 	Status       *string    `json:"status"`
+	Rating       *float64   `json:"rating"`
+	RatedAt      *time.Time `json:"rated_at"`
 	CreatedAt    time.Time  `json:"created_at"`
 	UpdatedAt    time.Time  `json:"updated_at"`
 	FavoritedAt  *time.Time `json:"favorited_at,omitempty"`
