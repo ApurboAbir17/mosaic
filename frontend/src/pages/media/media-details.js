@@ -4,6 +4,7 @@ import { mediaRow } from "../../components/media-row/media-row.js";
 import { escapeHtml } from "../../utils/escape-html.js";
 import { collectionService } from "../../collection/collection-service.js";
 import { watchlistService } from "../../watchlist/watchlist-service.js";
+import { createRatingControl } from "../../components/rating/rating.js";
 
 const validTypes = new Set(["movie", "tv"]);
 
@@ -80,6 +81,7 @@ function detailsMarkup(media, currentUser) {
         </div>
       </div>
       <div class="media-details-body">
+        ${currentUser ? `<div class="media-details-rating" data-rating-panel></div>` : ""}
         <section class="media-details-section" aria-labelledby="overview-title">
           <p class="eyebrow">The story</p>
           <h2 id="overview-title">Overview</h2>
@@ -117,7 +119,11 @@ export async function renderMediaDetailsPage(container, route, currentUser = nul
     const media = await getMediaDetails(route.type, route.id);
     if (container.mediaDetailsRenderToken !== renderToken) return;
     container.innerHTML = detailsMarkup(media, currentUser);
-    if (currentUser) bindCollectionActions(container, media);
+    if (currentUser) {
+      const item = await bindCollectionActions(container, media);
+      if (container.mediaDetailsRenderToken !== renderToken) return;
+      mountRatingControl(container, media, item);
+    }
   } catch (error) {
     if (container.mediaDetailsRenderToken !== renderToken) return;
     container.innerHTML = errorState(
@@ -146,14 +152,15 @@ export async function renderMediaDetailsPage(container, route, currentUser = nul
     const favoriteButton = container.querySelector("[data-add-favorite]");
     const watchlistButton = container.querySelector("[data-toggle-watchlist]");
     const status = container.querySelector("[data-collection-status]");
-    if (!addButton || !favoriteButton || !watchlistButton) return;
+    if (!addButton || !favoriteButton || !watchlistButton) return null;
+    let item = null;
     const applyWatchlistState = (onWatchlist) => {
       watchlistButton.textContent = onWatchlist ? "Remove from Watchlist" : "Add to Watchlist";
       watchlistButton.setAttribute("aria-pressed", String(onWatchlist));
     };
     try {
       const result = await collectionService.check(collectionInput(media));
-      const item = result.item;
+      item = result.item;
       if (item) {
         if (item.in_collection) {
           addButton.textContent = "In Collection";
@@ -217,5 +224,20 @@ export async function renderMediaDetailsPage(container, route, currentUser = nul
         watchlistButton.disabled = false;
       }
     });
+    return item;
+  }
+
+  // The rating control reuses the item already fetched for the list actions, so
+  // opening a title issues one relationship lookup rather than two.
+  function mountRatingControl(container, media, item) {
+    const host = container.querySelector("[data-rating-panel]");
+    if (!host) return;
+    const control = createRatingControl({
+      media: collectionInput(media),
+      rating: typeof item?.rating === "number" ? item.rating : null,
+      itemId: item?.id ?? null,
+      tmdbRating: media.rating
+    });
+    host.replaceChildren(control.element);
   }
 }
