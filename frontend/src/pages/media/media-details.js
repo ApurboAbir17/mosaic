@@ -5,6 +5,9 @@ import { escapeHtml } from "../../utils/escape-html.js";
 import { collectionService } from "../../collection/collection-service.js";
 import { watchlistService } from "../../watchlist/watchlist-service.js";
 import { createRatingControl } from "../../components/rating/rating.js";
+import { createReviewEditor } from "../../components/review/review-editor.js";
+import { reviewCard, bindSpoilerReveals } from "../../components/review/review-card.js";
+import { reviewService } from "../../reviews/review-service.js";
 
 const validTypes = new Set(["movie", "tv"]);
 
@@ -103,6 +106,15 @@ function detailsMarkup(media, currentUser) {
             ${media.providers.length ? `<div class="provider-list">${media.providers.map((provider) => `<span class="provider"><img src="${provider.logoUrl}" alt="">${escapeHtml(provider.name)}</span>`).join("")}</div>` : ""}
           </section>` : ""}
         ${media.related.length ? `<section class="media-details-section media-details-related" aria-labelledby="related-title"><p class="eyebrow">Keep exploring</p><h2 id="related-title">More like this</h2><div class="media-row">${mediaRow(media.related)}</div></section>` : ""}
+        <section class="media-details-section media-details-reviews" aria-labelledby="reviews-title">
+          <p class="eyebrow">Reviews</p>
+          <h2 id="reviews-title">Reviews</h2>
+          ${currentUser ? `<div class="media-details-my-review" data-my-review></div>` : ""}
+          <h3 class="media-details-reviews-heading">Community reviews</h3>
+          <div class="review-list" data-public-reviews></div>
+          <p class="profile-form-message" data-reviews-status role="status" aria-live="polite"></p>
+          <button class="button button-ghost review-load-more" type="button" data-reviews-more hidden>Load more</button>
+        </section>
       </div>
     </article>
   `;
@@ -124,6 +136,7 @@ export async function renderMediaDetailsPage(container, route, currentUser = nul
       if (container.mediaDetailsRenderToken !== renderToken) return;
       mountRatingControl(container, media, item);
     }
+    await mountReviews(container, media, currentUser);
   } catch (error) {
     if (container.mediaDetailsRenderToken !== renderToken) return;
     container.innerHTML = errorState(
@@ -239,5 +252,78 @@ export async function renderMediaDetailsPage(container, route, currentUser = nul
       tmdbRating: media.rating
     });
     host.replaceChildren(control.element);
+  }
+
+  // Community reviews are public to everyone. Signed-in users additionally get
+  // their own editor, and their review is withheld from the public list so the
+  // same review is never shown twice.
+  async function mountReviews(container, media, currentUser) {
+    const publicHost = container.querySelector("[data-public-reviews]");
+    if (!publicHost) return;
+    const status = container.querySelector("[data-reviews-status]");
+    const more = container.querySelector("[data-reviews-more]");
+    let myReview = null;
+    let publicItems = [];
+    let fetched = 0;
+
+    if (currentUser) {
+      const myHost = container.querySelector("[data-my-review]");
+      if (myHost) {
+        try {
+          const result = await reviewService.mineForMedia(media.type, String(media.id), 1);
+          myReview = result.items?.[0] ?? null;
+        } catch {
+          myReview = null;
+        }
+        const editor = createReviewEditor({
+          media: collectionInput(media),
+          review: myReview,
+          onSaved: (saved) => {
+            myReview = saved;
+            loadPublic(true);
+          },
+          onDeleted: () => {
+            myReview = null;
+            loadPublic(true);
+          }
+        });
+        myHost.replaceChildren(editor.element);
+      }
+    }
+
+    function paintPublic() {
+      publicHost.innerHTML = publicItems.length
+        ? publicItems.map(reviewCard).join("")
+        : `<p class="muted">No community reviews yet.</p>`;
+      bindSpoilerReveals(publicHost);
+    }
+
+    async function loadPublic(reset = true) {
+      if (reset) {
+        publicItems = [];
+        fetched = 0;
+        publicHost.innerHTML = `<p class="muted">Loading community reviews…</p>`;
+      }
+      try {
+        const result = await reviewService.listPublic(media.type, String(media.id), {
+          limit: 20,
+          offset: fetched
+        });
+        fetched += result.items.length;
+        const items = result.items.filter((entry) => entry.id !== myReview?.id);
+        publicItems = reset ? items : [...publicItems, ...items];
+        paintPublic();
+        more.hidden = fetched >= result.pagination.total;
+        if (status) status.textContent = "";
+      } catch (error) {
+        if (reset) publicHost.innerHTML = `<p class="muted">Community reviews are unavailable right now.</p>`;
+        if (status) status.textContent = error.message;
+        more.hidden = true;
+      }
+    }
+
+    more.addEventListener("click", () => loadPublic(false));
+
+    await loadPublic(true);
   }
 }

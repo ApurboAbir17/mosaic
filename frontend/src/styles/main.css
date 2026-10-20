@@ -13,5 +13,7 @@
 @import url("../pages/watchlist/watchlist.css");
 @import url("../pages/ratings/ratings.css");
 @import url("../components/rating/rating.css");
+@import url("../pages/reviews/reviews.css");
+@import url("../components/review/review.css");
 @import url("../components/search/search-suggestions.css");
 @import url("./responsive.css");

@@ -11,6 +11,7 @@ import { renderProfileSettings } from "./pages/profile/profile-settings.js";
 import { renderCollectionPage } from "./pages/collection/collection.js";
 import { renderWatchlistPage } from "./pages/watchlist/watchlist.js";
 import { renderRatingsPage } from "./pages/ratings/ratings.js";
+import { renderReviewsPage } from "./pages/reviews/reviews.js";
 import { saveRecentSearch } from "./utils/recent-searches.js";
 
 const themeToggle = document.querySelector("#theme-toggle");
@@ -220,6 +221,13 @@ function renderRoute() {
       return;
     }
     renderRatingsPage(content);
+  } else if (path === "/reviews") {
+    if (!currentUser) {
+      window.history.replaceState({}, "", `/login?redirect=${encodeURIComponent(path)}`);
+      renderRoute();
+      return;
+    }
+    renderReviewsPage(content);
   } else if (path === "/dashboard") {
     if (!currentUser) {
       window.history.replaceState({}, "", `/login?redirect=${encodeURIComponent(path)}`);
