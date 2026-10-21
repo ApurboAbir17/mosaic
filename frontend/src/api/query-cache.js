@@ -20,10 +20,13 @@ export function cachedQuery(key, loader, ttl = 120000) {
   if (cached !== undefined) return Promise.resolve(cached);
 
   if (!pending.has(key)) {
-    pending.set(key, Promise.resolve()
+    const request = Promise.resolve()
       .then(loader)
-      .then((value) => writeCached(key, value, ttl))
-      .finally(() => pending.delete(key)));
+      .then((value) => pending.get(key) === request ? writeCached(key, value, ttl) : value)
+      .finally(() => {
+        if (pending.get(key) === request) pending.delete(key);
+      });
+    pending.set(key, request);
   }
   return pending.get(key);
 }
