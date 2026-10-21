@@ -253,13 +253,13 @@ func (s *Service) list(ctx context.Context, userID string, filters Filters, scop
 
 const itemQuery = `SELECT um.id, mi.provider, mi.media_type, mi.provider_media_id,
 	mi.title, mi.poster_path, mi.release_date::text, um.in_collection, um.is_favorite, um.status,
-	um.created_at, um.updated_at, um.favorited_at, um.rating::float8, um.rated_at FROM user_media um
+	um.status_changed_at, um.created_at, um.updated_at, um.favorited_at, um.rating::float8, um.rated_at FROM user_media um
 	JOIN media_items mi ON mi.id = um.media_id`
 
 func scanArgs(item *Item) []any {
 	return []any{&item.ID, &item.Media.Provider, &item.Media.MediaType, &item.Media.ProviderMediaID,
 		&item.Media.Title, &item.Media.PosterPath, &item.Media.ReleaseDate, &item.InCollection,
-		&item.IsFavorite, &item.Status, &item.CreatedAt, &item.UpdatedAt, &item.FavoritedAt,
+		&item.IsFavorite, &item.Status, &item.StatusChangedAt, &item.CreatedAt, &item.UpdatedAt, &item.FavoritedAt,
 		&item.Rating, &item.RatedAt}
 }
 

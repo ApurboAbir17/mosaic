@@ -157,6 +157,12 @@ func (h *Handler) Watchlist(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.setStatus(w, r, user.ID, itemID)
+	case "history":
+		if r.Method != http.MethodGet {
+			methodError(w, "GET, OPTIONS")
+			return
+		}
+		h.statusHistory(w, r, user.ID, itemID)
 	case "":
 		if r.Method != http.MethodDelete {
 			methodError(w, "DELETE, OPTIONS")
@@ -170,6 +176,15 @@ func (h *Handler) Watchlist(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.NotFound(w, r)
 	}
+}
+
+func (h *Handler) statusHistory(w http.ResponseWriter, r *http.Request, userID string, itemID int64) {
+	history, err := h.service.StatusHistory(r.Context(), userID, itemID)
+	if err != nil {
+		h.serviceError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"items": history})
 }
 
 // Ratings serves the personal-rating endpoints. The {itemId} path segment is a
