@@ -6,6 +6,7 @@ import (
 
 	"github.com/MdRasB/mosaic/backend/internal/auth"
 	"github.com/MdRasB/mosaic/backend/internal/config"
+	"github.com/MdRasB/mosaic/backend/internal/dashboard"
 	"github.com/MdRasB/mosaic/backend/internal/domain/collection"
 	"github.com/MdRasB/mosaic/backend/internal/domain/review"
 	"github.com/MdRasB/mosaic/backend/internal/profile"
@@ -21,10 +22,12 @@ func New(cfg config.Config, pool *pgxpool.Pool) http.Handler {
 		profileHandler := profile.NewHandler(profile.NewService(pool), authService, cfg)
 		collectionHandler := collection.NewHandler(collection.NewService(pool), authService, cfg)
 		reviewHandler := review.NewHandler(review.NewService(pool), authService, cfg)
+		dashboardHandler := dashboard.NewHandler(dashboard.NewService(pool), authService, cfg)
 		mux.HandleFunc("/api/v1/auth/register", authHandler.Register)
 		mux.HandleFunc("/api/v1/auth/login", authHandler.Login)
 		mux.HandleFunc("/api/v1/auth/me", authHandler.Me)
 		mux.HandleFunc("/api/v1/auth/logout", authHandler.Logout)
+		mux.HandleFunc("/api/v1/dashboard", dashboardHandler.Dashboard)
 		mux.HandleFunc("/api/v1/profile/me", profileHandler.Me)
 		mux.HandleFunc("/api/v1/profile/me/avatar", profileHandler.AvatarImage)
 		mux.HandleFunc("/api/v1/profile/me/avatar/upload", profileHandler.UploadAvatar)
