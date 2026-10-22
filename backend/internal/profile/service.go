@@ -161,6 +161,44 @@ func (s *Service) Update(ctx context.Context, userID string, input UpdateInput) 
 	return profile, nil
 }
 
+// SetVisibility changes only the profile visibility. Settings uses it so
+// profile visibility keeps a single authoritative home.
+func (s *Service) SetVisibility(ctx context.Context, userID, visibility string) (Profile, error) {
+	value, err := normalizeVisibility(visibility)
+	if err != nil {
+		return Profile{}, err
+	}
+	result, err := s.db.Exec(ctx, `UPDATE user_profiles
+		SET visibility = $2, updated_at = now()
+		WHERE user_id = $1`, userID, value)
+	if err != nil {
+		return Profile{}, fmt.Errorf("set profile visibility: %w", err)
+	}
+	if result.RowsAffected() == 0 {
+		return Profile{}, ErrNotFound
+	}
+	return s.Get(ctx, userID)
+}
+
+// SetVisibilityTx applies the same change inside the caller's transaction, so
+// a settings update that touches two tables commits as one unit.
+func (s *Service) SetVisibilityTx(ctx context.Context, tx pgx.Tx, userID, visibility string) error {
+	value, err := normalizeVisibility(visibility)
+	if err != nil {
+		return err
+	}
+	result, err := tx.Exec(ctx, `UPDATE user_profiles
+		SET visibility = $2, updated_at = now()
+		WHERE user_id = $1`, userID, value)
+	if err != nil {
+		return fmt.Errorf("set profile visibility: %w", err)
+	}
+	if result.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
 func (s *Service) query(ctx context.Context, query string, args ...any) (Profile, error) {
 	var profile Profile
 	err := s.db.QueryRow(ctx, query, args...).Scan(
@@ -208,4 +246,14 @@ func normalizeAndValidate(input UpdateInput) (UpdateInput, error) {
 		return UpdateInput{}, fmt.Errorf("%w: visibility must be private or public", ErrInvalidInput)
 	}
 	return input, nil
+}
+
+// normalizeVisibility validates a visibility value on its own, for callers
+// that only change visibility.
+func normalizeVisibility(visibility string) (string, error) {
+	value := strings.ToLower(strings.TrimSpace(visibility))
+	if value != "private" && value != "public" {
+		return "", fmt.Errorf("%w: visibility must be private or public", ErrInvalidInput)
+	}
+	return value, nil
 }
