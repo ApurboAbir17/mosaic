@@ -46,13 +46,3 @@ export function renderAuthPage(container, mode, onSuccess) {
   });
 }
 
-export function renderDashboard(container, user, onLogout) {
-  container.classList.remove("explore-shell");
-  container.innerHTML = `
-    <section class="explore-state explore-state-empty page-placeholder">
-      <div><p class="eyebrow">Your Mosaic</p><h1>Welcome back.</h1><p class="muted">${escapeHtml(user.email)}</p>
-      <p class="muted">Your dashboard foundation is ready. Collection features arrive in the next module.</p></div>
-      <button class="button button-primary" id="logout-button" type="button">Log out</button>
-    </section>`;
-  container.querySelector("#logout-button").addEventListener("click", onLogout);
-}

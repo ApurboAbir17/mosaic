@@ -5,7 +5,8 @@ import { parseMediaRoute, renderMediaDetailsPage } from "./pages/media/media-det
 import { authService } from "./auth/auth-service.js";
 import { profileService } from "./profile/profile-service.js";
 import { avatarInitials, avatarSource, renderAvatar } from "./profile/avatar.js";
-import { renderAuthPage, renderDashboard } from "./pages/auth/auth.js";
+import { renderAuthPage } from "./pages/auth/auth.js";
+import { renderDashboard } from "./pages/dashboard/dashboard.js";
 import { renderProfilePage } from "./pages/profile/profile.js";
 import { renderProfileSettings } from "./pages/profile/profile-settings.js";
 import { renderCollectionPage } from "./pages/collection/collection.js";
@@ -243,9 +244,7 @@ function renderRoute() {
       renderRoute();
       return;
     }
-    renderDashboard(content, currentUser, async () => {
-      await logout();
-    });
+    renderDashboard(content, { user: currentUser });
   } else if (path === "/" || path === "/explore") {
     renderExplorePage(content);
   } else if (path === "/search") {
