@@ -73,6 +73,11 @@ func (s *Service) Register(ctx context.Context, email, password string) (User, s
 		VALUES ($1, $2, $3)`, userID, defaultUsername(userID), "Mosaic User"); err != nil {
 		return User{}, "", fmt.Errorf("insert user profile: %w", err)
 	}
+	// Settings are private-by-default. The row is created in the same
+	// transaction so a new account can open Settings immediately.
+	if _, err = tx.Exec(ctx, `INSERT INTO user_settings (user_id) VALUES ($1)`, userID); err != nil {
+		return User{}, "", fmt.Errorf("insert user settings: %w", err)
+	}
 	if _, err = tx.Exec(ctx, `INSERT INTO sessions (id, user_id, token_hash, expires_at) VALUES ($1, $2, $3, $4)`,
 		sessionID, userID, sessionHash, time.Now().UTC().Add(7*24*time.Hour)); err != nil {
 		return User{}, "", fmt.Errorf("insert session: %w", err)
