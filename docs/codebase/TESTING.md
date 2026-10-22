@@ -20,6 +20,29 @@ Backend tests sit beside the package under test, for example
 `backend/internal/httpserver/server_test.go`. Frontend behavior is currently
 manual browser verification.
 
+## Database integration tests
+
+Tests that need a real database live in `*_integration_test.go` files and are
+skipped unless `MOSAIC_TEST_DATABASE_URL` points at a disposable database that
+already has the migrations applied. `go test ./...` therefore stays free of
+external requirements.
+
+```bash
+make db-up
+make db-migrate
+cd backend
+MOSAIC_TEST_DATABASE_URL="postgres://mosaic:mosaic@127.0.0.1:5432/mosaic?sslmode=disable" go test ./...
+```
+
+The integration tests create their own accounts and titles and delete them
+afterwards, so they can run against the local development database.
+
+| File | Covers |
+|---|---|
+| `backend/internal/domain/collection/service_integration_test.go` | Collection add/remove semantics, `collected_at` maintenance, and that a rating survives a collection removal |
+| `backend/internal/dashboard/service_integration_test.go` | Dashboard statistics, every preview section, empty sections for a new account, and account isolation |
+| `backend/internal/settings/service_integration_test.go` | Private-by-default settings, partial updates, no-op timestamps, profile visibility authority, and account isolation |
+
 ## Current coverage
 
 The health handler and method rejection are covered. Password hashing and
@@ -55,7 +78,14 @@ logout.
 - `backend/internal/profile/service_test.go`
 - `backend/internal/domain/collection/service_test.go`
 - `backend/internal/domain/collection/watchlist_test.go`
+- `backend/internal/domain/collection/service_integration_test.go`
+- `backend/internal/dashboard/service_test.go`
+- `backend/internal/dashboard/service_integration_test.go`
+- `backend/internal/settings/service_test.go`
+- `backend/internal/settings/service_integration_test.go`
 - `frontend/package.json`
 - `Makefile`
 - `frontend/src/pages/media/media-details.js`
 - `frontend/src/pages/watchlist/watchlist.js`
+- `frontend/src/pages/dashboard/dashboard.js`
+- `frontend/src/pages/settings/settings.js`
