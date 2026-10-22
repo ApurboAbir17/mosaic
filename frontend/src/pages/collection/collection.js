@@ -23,7 +23,7 @@ function mediaCard(item, favoritePage) {
         <div class="collection-card-content">
           <h2>${title}</h2>
           <p>${type}</p>
-          <small>Added ${escapeHtml(formatDate(item.created_at))}</small>
+          <small>Added ${escapeHtml(formatDate(favoritePage ? item.favorited_at : item.collected_at ?? item.created_at))}</small>
         </div>
       </a>
       <div class="collection-card-actions">
@@ -101,8 +101,12 @@ export async function renderCollectionPage(container, { favoritePage = false } =
       : items.filter((item) => item.media.media_type === filters.type);
     return [...filtered].sort((left, right) => {
       if (filters.sort === "title") return left.media.title.localeCompare(right.media.title);
-      const leftDate = new Date(favoritePage ? left.favorited_at ?? left.created_at : left.created_at).getTime();
-      const rightDate = new Date(favoritePage ? right.favorited_at ?? right.created_at : right.created_at).getTime();
+      const leftDate = new Date(favoritePage
+        ? left.favorited_at ?? left.created_at
+        : left.collected_at ?? left.created_at).getTime();
+      const rightDate = new Date(favoritePage
+        ? right.favorited_at ?? right.created_at
+        : right.collected_at ?? right.created_at).getTime();
       return filters.sort === "oldest" ? leftDate - rightDate : rightDate - leftDate;
     });
   }

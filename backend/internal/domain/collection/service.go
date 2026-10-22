@@ -44,10 +44,16 @@ func (s *Service) Add(ctx context.Context, userID string, input MediaInput, favo
 	var itemID int64
 	var created bool
 	err = tx.QueryRow(ctx, `INSERT INTO user_media
-		(user_id, media_id, in_collection, is_favorite, favorited_at)
-		VALUES ($1, $2, NOT $3, $3, CASE WHEN $3 THEN now() ELSE NULL END)
+		(user_id, media_id, in_collection, collected_at, is_favorite, favorited_at)
+		VALUES ($1, $2, NOT $3, CASE WHEN $3 THEN NULL ELSE now() END,
+			$3, CASE WHEN $3 THEN now() ELSE NULL END)
 		ON CONFLICT (user_id, media_id) DO UPDATE SET
 			in_collection = user_media.in_collection OR NOT $3,
+			collected_at = CASE
+				WHEN $3 THEN user_media.collected_at
+				WHEN user_media.in_collection THEN user_media.collected_at
+				ELSE now()
+			END,
 			is_favorite = user_media.is_favorite OR $3,
 			favorited_at = CASE WHEN user_media.is_favorite OR $3
 				THEN COALESCE(user_media.favorited_at, now()) ELSE NULL END,
@@ -121,7 +127,8 @@ func (s *Service) Remove(ctx context.Context, userID string, itemID int64) error
 	}
 	defer tx.Rollback(ctx)
 
-	result, err := tx.Exec(ctx, `UPDATE user_media SET in_collection = FALSE, updated_at = now()
+	result, err := tx.Exec(ctx, `UPDATE user_media
+		SET in_collection = FALSE, collected_at = NULL, updated_at = now()
 		WHERE id = $1 AND user_id = $2 AND in_collection = TRUE`, itemID, userID)
 	if err != nil {
 		return fmt.Errorf("remove collection membership: %w", err)
@@ -211,18 +218,34 @@ func (s *Service) list(ctx context.Context, userID string, filters Filters, scop
 		return result, fmt.Errorf("count collection: %w", err)
 	}
 	order := "um.created_at DESC, um.id DESC"
-	if filters.Sort == "oldest" {
-		order = "um.created_at ASC, um.id ASC"
-	} else if filters.Sort == "title" {
+	if filters.Sort == "title" {
 		order = "mi.title ASC, um.id ASC"
+	} else if scope == scopeCollection {
+		if filters.Sort == "oldest" {
+			order = "um.collected_at ASC, um.id ASC"
+		} else {
+			order = "um.collected_at DESC, um.id DESC"
+		}
 	} else if scope == scopeFavorites {
-		order = "um.favorited_at DESC, um.id DESC"
+		if filters.Sort == "oldest" {
+			order = "um.favorited_at ASC, um.id ASC"
+		} else {
+			order = "um.favorited_at DESC, um.id DESC"
+		}
+	} else if scope == scopeWatchlist {
+		if filters.Sort == "oldest" {
+			order = "um.status_changed_at ASC, um.id ASC"
+		} else {
+			order = "um.status_changed_at DESC, um.id DESC"
+		}
 	} else if scope == scopeRatings {
 		switch filters.Sort {
 		case "highest":
 			order = "um.rating DESC, um.rated_at DESC, um.id DESC"
 		case "lowest":
 			order = "um.rating ASC, um.rated_at DESC, um.id DESC"
+		case "oldest":
+			order = "um.rated_at ASC, um.id ASC"
 		default:
 			order = "um.rated_at DESC, um.id DESC"
 		}
@@ -253,14 +276,15 @@ func (s *Service) list(ctx context.Context, userID string, filters Filters, scop
 
 const itemQuery = `SELECT um.id, mi.provider, mi.media_type, mi.provider_media_id,
 	mi.title, mi.poster_path, mi.release_date::text, um.in_collection, um.is_favorite, um.status,
-	um.status_changed_at, um.created_at, um.updated_at, um.favorited_at, um.rating::float8, um.rated_at FROM user_media um
+	um.status_changed_at, um.created_at, um.updated_at, um.favorited_at, um.rating::float8, um.rated_at,
+	um.collected_at FROM user_media um
 	JOIN media_items mi ON mi.id = um.media_id`
 
 func scanArgs(item *Item) []any {
 	return []any{&item.ID, &item.Media.Provider, &item.Media.MediaType, &item.Media.ProviderMediaID,
 		&item.Media.Title, &item.Media.PosterPath, &item.Media.ReleaseDate, &item.InCollection,
 		&item.IsFavorite, &item.Status, &item.StatusChangedAt, &item.CreatedAt, &item.UpdatedAt, &item.FavoritedAt,
-		&item.Rating, &item.RatedAt}
+		&item.Rating, &item.RatedAt, &item.CollectedAt}
 }
 
 func normalizeMedia(input MediaInput) (MediaInput, error) {
