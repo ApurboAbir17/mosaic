@@ -8,19 +8,19 @@ export const profileService = {
       method: "PATCH",
       body: JSON.stringify(profile)
     });
-    invalidateCached("/profile/me", "/dashboard");
+    invalidateCached("/profile/me", "/settings/me", "/dashboard");
     return result;
   },
   uploadAvatar: async (file) => {
     const body = new FormData();
     body.append("avatar", file);
     const result = await requestJSON("/profile/me/avatar/upload", { method: "POST", body });
-    invalidateCached("/profile/me", "/dashboard");
+    invalidateCached("/profile/me", "/settings/me", "/dashboard");
     return result;
   },
   clearAvatar: async () => {
     const result = await requestJSON("/profile/me/avatar", { method: "DELETE" });
-    invalidateCached("/profile/me", "/dashboard");
+    invalidateCached("/profile/me", "/settings/me", "/dashboard");
     return result;
   },
 };
