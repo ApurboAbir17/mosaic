@@ -32,6 +32,7 @@ type Item struct {
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedAt       time.Time  `json:"updated_at"`
 	FavoritedAt     *time.Time `json:"favorited_at,omitempty"`
+	CollectedAt     *time.Time `json:"collected_at,omitempty"`
 }
 
 type Filters struct {

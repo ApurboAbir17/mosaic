@@ -10,6 +10,23 @@
     <link rel="icon" type="image/svg+xml" href="/favicon/mosaic-favicon.svg" />
     <title>Mosaic | Your world</title>
     <link rel="stylesheet" href="./src/styles/main.css" />
+    <script>
+      // Apply the stored theme before the first paint so a signed-in user never
+      // sees a flash of the wrong theme.
+      (function () {
+        try {
+          var stored = window.localStorage.getItem("mosaic-theme");
+          var theme = stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
+          var resolved = theme === "system"
+            ? (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")
+            : theme;
+          document.documentElement.toggleAttribute("data-theme", resolved === "light");
+          document.documentElement.style.colorScheme = resolved;
+        } catch (error) {
+          // Storage can be unavailable in private mode; the default theme still applies.
+        }
+      })();
+    </script>
     <script type="module" src="/config.js"></script>
   </head>
   <body>
@@ -26,6 +43,15 @@
         </a>
         <nav class="sidebar-nav" aria-label="Main navigation">
           <p class="nav-heading sidebar-label">Main</p>
+          <a class="nav-link" href="/dashboard"
+            ><img
+              class="sidebar-icon"
+              src="/icons/slidebar-icons/mosaic-dashboard.svg"
+              alt=""
+              aria-hidden="true"
+            />
+            <span class="sidebar-label">Dashboard</span></a
+          >
           <a class="nav-link is-active" href="/explore" aria-current="page"
             ><img
               class="sidebar-icon"
@@ -125,7 +151,7 @@
             />
             <span class="sidebar-label">Profile</span></a
           >
-          <a class="nav-link" href="/settings/profile"
+          <a class="nav-link" href="/settings"
             ><img
               class="sidebar-icon"
               src="/icons/slidebar-icons/mosaic-settings.svg"

@@ -11,7 +11,7 @@ export const reviewService = {
       method: "PUT",
       body: JSON.stringify({ media, review })
     });
-    invalidateCached("/reviews", "/media/");
+    invalidateCached("/reviews", "/media/", "/dashboard");
     return result;
   },
   listMine: (filters) => cachedQuery(`/reviews/me?${queryString(filters)}`, () => requestJSON(`/reviews/me?${queryString(filters)}`)),
@@ -25,12 +25,12 @@ export const reviewService = {
   get: (id) => cachedQuery(`/reviews/${id}`, () => requestJSON(`/reviews/${id}`)),
   update: async (id, patch) => {
     const result = await requestJSON(`/reviews/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
-    invalidateCached("/reviews");
+    invalidateCached("/reviews", "/dashboard");
     return result;
   },
   remove: async (id) => {
     const result = await requestJSON(`/reviews/${id}`, { method: "DELETE" });
-    invalidateCached("/reviews");
+    invalidateCached("/reviews", "/dashboard");
     return result;
   },
   listPublic: (mediaType, providerMediaId, { limit = 20, offset = 0 } = {}) =>

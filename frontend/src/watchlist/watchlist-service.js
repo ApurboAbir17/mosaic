@@ -7,13 +7,13 @@ const queryString = ({ type = "all", status = "all", sort = "recent", limit = 20
 export const watchlistService = {
   add: async (media) => {
     const result = await requestJSON("/watchlist", { method: "POST", body: JSON.stringify(media) });
-    invalidateCached("/watchlist");
+    invalidateCached("/watchlist", "/dashboard");
     return result;
   },
   list: (filters) => cachedQuery(`/watchlist?${queryString(filters)}`, () => requestJSON(`/watchlist?${queryString(filters)}`)),
   remove: async (id) => {
     const result = await requestJSON(`/watchlist/${id}`, { method: "DELETE" });
-    invalidateCached("/watchlist");
+    invalidateCached("/watchlist", "/dashboard");
     return result;
   },
   setStatus: async (id, status) => {
@@ -21,7 +21,7 @@ export const watchlistService = {
       method: "PUT",
       body: JSON.stringify({ status })
     });
-    invalidateCached("/watchlist");
+    invalidateCached("/watchlist", "/dashboard");
     return result;
   },
   history: (id) => requestJSON(`/watchlist/${id}/history`)

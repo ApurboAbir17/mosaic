@@ -9,7 +9,7 @@ const listPath = (basePath, filters) => `${basePath}?${queryString(filters)}`;
 export const collectionService = {
   add: async (media) => {
     const result = await requestJSON("/collection", { method: "POST", body: JSON.stringify(media) });
-    invalidateCached("/collection", "/favorites");
+    invalidateCached("/collection", "/favorites", "/dashboard");
     return result;
   },
   check: (media) => requestJSON(`/collection/check?${new URLSearchParams({
@@ -23,17 +23,17 @@ export const collectionService = {
   },
   remove: async (id) => {
     const result = await requestJSON(`/collection/${id}`, { method: "DELETE" });
-    invalidateCached("/collection", "/favorites");
+    invalidateCached("/collection", "/favorites", "/dashboard");
     return result;
   },
   favorite: async (id) => {
     const result = await requestJSON(`/collection/${id}/favorite`, { method: "PUT" });
-    invalidateCached("/collection", "/favorites");
+    invalidateCached("/collection", "/favorites", "/dashboard");
     return result;
   },
   unfavorite: async (id) => {
     const result = await requestJSON(`/collection/${id}/favorite`, { method: "DELETE" });
-    invalidateCached("/collection", "/favorites");
+    invalidateCached("/collection", "/favorites", "/dashboard");
     return result;
   },
   addAsFavorite: async (media) => {
@@ -41,7 +41,7 @@ export const collectionService = {
       method: "PUT",
       body: JSON.stringify(media)
     });
-    invalidateCached("/collection", "/favorites");
+    invalidateCached("/collection", "/favorites", "/dashboard");
     return result;
   },
   listFavorites: (filters) => {

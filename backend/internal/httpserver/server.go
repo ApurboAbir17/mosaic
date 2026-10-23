@@ -6,9 +6,11 @@ import (
 
 	"github.com/MdRasB/mosaic/backend/internal/auth"
 	"github.com/MdRasB/mosaic/backend/internal/config"
+	"github.com/MdRasB/mosaic/backend/internal/dashboard"
 	"github.com/MdRasB/mosaic/backend/internal/domain/collection"
 	"github.com/MdRasB/mosaic/backend/internal/domain/review"
 	"github.com/MdRasB/mosaic/backend/internal/profile"
+	"github.com/MdRasB/mosaic/backend/internal/settings"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -18,16 +20,21 @@ func New(cfg config.Config, pool *pgxpool.Pool) http.Handler {
 	if pool != nil {
 		authService := auth.NewService(pool)
 		authHandler := auth.NewHandler(authService, cfg)
-		profileHandler := profile.NewHandler(profile.NewService(pool), authService, cfg)
+		profileService := profile.NewService(pool)
+		profileHandler := profile.NewHandler(profileService, authService, cfg)
+		settingsHandler := settings.NewHandler(settings.NewService(pool, profileService), authService, cfg)
 		collectionHandler := collection.NewHandler(collection.NewService(pool), authService, cfg)
 		reviewHandler := review.NewHandler(review.NewService(pool), authService, cfg)
+		dashboardHandler := dashboard.NewHandler(dashboard.NewService(pool), authService, cfg)
 		mux.HandleFunc("/api/v1/auth/register", authHandler.Register)
 		mux.HandleFunc("/api/v1/auth/login", authHandler.Login)
 		mux.HandleFunc("/api/v1/auth/me", authHandler.Me)
 		mux.HandleFunc("/api/v1/auth/logout", authHandler.Logout)
+		mux.HandleFunc("/api/v1/dashboard", dashboardHandler.Dashboard)
 		mux.HandleFunc("/api/v1/profile/me", profileHandler.Me)
 		mux.HandleFunc("/api/v1/profile/me/avatar", profileHandler.AvatarImage)
 		mux.HandleFunc("/api/v1/profile/me/avatar/upload", profileHandler.UploadAvatar)
+		mux.HandleFunc("/api/v1/settings/me", settingsHandler.Me)
 		mux.HandleFunc("/api/v1/collection", collectionHandler.Collection)
 		mux.HandleFunc("/api/v1/collection/", collectionHandler.Collection)
 		mux.HandleFunc("/api/v1/collection/check", collectionHandler.Check)

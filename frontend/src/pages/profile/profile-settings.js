@@ -14,7 +14,7 @@ function formMarkup(profile) {
           <h1 id="settings-title">Edit your profile.</h1>
           <p class="muted">Keep the details that shape your Mosaic identity up to date.</p>
         </div>
-        <a class="button button-ghost" href="/profile">Cancel</a>
+        <a class="button button-ghost" href="/settings">Back to settings</a>
       </div>
       <form class="profile-form" id="profile-form">
         <label>Username

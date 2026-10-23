@@ -12,7 +12,7 @@ export const ratingService = {
       method: "PUT",
       body: JSON.stringify({ media, rating })
     });
-    invalidateCached("/ratings");
+    invalidateCached("/ratings", "/dashboard");
     return result;
   },
   set: async (id, rating) => {
@@ -20,12 +20,12 @@ export const ratingService = {
       method: "PUT",
       body: JSON.stringify({ rating })
     });
-    invalidateCached("/ratings");
+    invalidateCached("/ratings", "/dashboard");
     return result;
   },
   remove: async (id) => {
     const result = await requestJSON(`/ratings/${id}`, { method: "DELETE" });
-    invalidateCached("/ratings");
+    invalidateCached("/ratings", "/dashboard");
     return result;
   },
   list: (filters) => cachedQuery(`/ratings?${queryString(filters)}`, () => requestJSON(`/ratings?${queryString(filters)}`))
