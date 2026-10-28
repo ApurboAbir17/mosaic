@@ -1,7 +1,7 @@
 .reviews-page {
   margin: 0 auto;
   max-width: 1100px;
-  padding: var(--space-6) 0;
+  padding: var(--space-6) 0 var(--space-8);
 }
 
 .reviews-heading,
@@ -15,7 +15,7 @@
 .reviews-toolbar {
   align-items: center;
   border-bottom: 1px solid var(--color-border);
-  margin-top: var(--space-6);
+  margin-top: var(--space-5);
   padding-bottom: var(--space-4);
 }
 
@@ -43,10 +43,13 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   color: var(--color-text);
-  padding: 0.6rem;
+  font-size: 0.85rem;
+  padding: 0.5rem 0.7rem;
 }
 
 .reviews-count {
+  color: var(--color-muted);
+  font-size: 0.9rem;
   margin: var(--space-5) 0 var(--space-3);
 }
 
@@ -59,8 +62,8 @@
   align-items: start;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-sm);
+  box-shadow: none;
   display: grid;
   gap: var(--space-4);
   grid-template-columns: 4rem minmax(0, 1fr) auto;
@@ -68,7 +71,7 @@
 }
 
 .my-review-poster {
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-xs);
   height: 6rem;
   object-fit: cover;
   width: 4rem;
@@ -80,45 +83,56 @@
 }
 
 .my-review-header h2 {
-  font-size: 1.05rem;
+  font-size: 1rem;
   margin: 0 0 var(--space-1);
 }
 
 .my-review-header p,
 .my-review-content small {
   color: var(--color-muted);
+  font-size: 0.8rem;
   margin: 0;
 }
 
 .my-review-content h3 {
+  font-size: 0.9rem;
+  font-weight: 650;
   margin: 0;
 }
 
 .my-review-excerpt {
   color: var(--color-text);
-  line-height: 1.6;
+  font-size: 0.9rem;
+  line-height: 1.65;
   margin: 0;
   white-space: pre-wrap;
 }
 
 .my-review-actions {
+  align-items: flex-start;
   display: grid;
   gap: var(--space-2);
   justify-items: start;
 }
 
 .my-review-edit {
+  align-items: flex-start;
   display: grid;
   gap: var(--space-3);
+  grid-template-columns: auto 1fr;
 }
 
 .reviews-state {
   align-items: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-muted);
   display: grid;
   gap: var(--space-3);
   justify-items: center;
-  min-height: 18rem;
-  padding: var(--space-8);
+  min-height: 16rem;
+  padding: var(--space-6);
   text-align: center;
 }
 
@@ -140,5 +154,12 @@
 
 @media (max-width: 640px) {
   .reviews-heading,
-  .reviews-toolbar { align-items: start; flex-direction: column; }
+  .reviews-toolbar {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .my-review-row {
+    grid-template-columns: 3rem minmax(0, 1fr);
+  }
 }
