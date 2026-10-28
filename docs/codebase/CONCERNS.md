@@ -7,7 +7,7 @@
 | high | TMDB key is visible in browser output | `frontend/src/api/tmdb.js`, `README.md` | Treat it as public; move sensitive/provider-controlled calls behind Go if required. |
 | medium | Uploaded avatar bytes are stored in the profile row | `backend/internal/profile/service.go`, `supabase/migrations/20261014120000_profile_avatar_upload.sql` | Keep the 2 MiB cap; migrate to object storage if profile volume or traffic grows. |
 | medium | Free hosting services may sleep or change limits | `docs/deployment/FREE-HOSTING.md` | Recheck provider terms before release and document cold starts. |
-| medium | Frontend has no automated browser tests | `frontend/package.json` | Add route/page tests or a browser smoke suite when auth is introduced. |
+| medium | Frontend has no automated browser tests | `frontend/package.json` | Add route/page tests or a browser smoke suite for authentication and navigation. |
 | medium | Collection, favorites, and watchlist share one `user_media` row | `backend/internal/domain/collection/service.go`, `backend/internal/domain/collection/watchlist.go` | Keep list removal membership-aware so one list never clears another; any new list must set or clear a flag rather than deleting the row. |
 
 ## Technical debt
@@ -34,6 +34,10 @@ changing requests use an exact configured Origin check. Authentication uses
 Argon2id and hashed session tokens. Rate limiting and a browser-level multipart
 upload test remain `[TODO]`.
 
+Production API requests use the configured `VITE_API_BASE_URL`, falling back
+to the documented Render API origin when that build variable is absent. A
+different deployment must configure its own API origin in the frontend build.
+
 ## Evidence
 
 - `frontend/vite.config.js`
@@ -42,6 +46,8 @@ upload test remain `[TODO]`.
 - `backend/internal/profile/handler.go`
 - `backend/internal/profile/service.go`
 - `frontend/src/api/http.js`
+- `frontend/src/auth/auth-service.js`
+- `README.md`
 - `frontend/src/profile/profile-service.js`
 - `supabase/migrations/20261014120000_profile_avatar_upload.sql`
 - `supabase/migrations/20261017120000_watchlist.sql`
