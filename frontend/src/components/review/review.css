@@ -2,7 +2,7 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
   display: grid;
   gap: var(--space-4);
   padding: var(--space-5);
@@ -25,34 +25,52 @@
 }
 
 .review-body {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   font-family: inherit;
+  font-size: 0.9rem;
   min-height: 9rem;
+  padding: 0.75rem 0.85rem;
   resize: vertical;
+}
+
+.review-body:focus {
+  border-color: var(--color-border-strong);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
 }
 
 .review-counter {
   color: var(--color-muted);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-variant-numeric: tabular-nums;
 }
 
 .review-counter.is-danger {
   color: var(--color-danger);
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .review-visibility {
-  border: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-4);
+  gap: 0;
   margin: 0;
   padding: 0;
 }
 
 .review-visibility .field-label {
+  background: var(--color-surface-raised);
+  border-bottom: 1px solid var(--color-border);
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
   flex-basis: 100%;
+  font-size: 0.78rem;
+  font-weight: 600;
   margin: 0;
+  padding: var(--space-2) var(--space-3);
 }
 
 .review-choice,
@@ -63,7 +81,7 @@
   display: inline-flex;
   gap: var(--space-2);
   font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .review-choice input,
@@ -83,7 +101,7 @@
 
 .review-status {
   color: var(--color-muted);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   margin: 0;
   min-height: 1.2rem;
 }
@@ -105,7 +123,7 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
   display: grid;
   gap: var(--space-3);
   padding: var(--space-4);
@@ -127,11 +145,11 @@
 .review-avatar {
   align-items: center;
   background: var(--color-surface-raised);
-  border-radius: 50%;
+  border-radius: var(--radius-pill);
   color: var(--color-muted);
   display: inline-flex;
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   height: 2rem;
   justify-content: center;
   overflow: hidden;
@@ -145,16 +163,17 @@
 }
 
 .review-author {
-  font-weight: 800;
+  font-weight: 650;
 }
 
 .review-card-date {
   color: var(--color-muted);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
 }
 
 .review-card-title {
-  font-size: 1.05rem;
+  font-size: 1rem;
+  font-weight: 650;
   margin: 0;
 }
 
@@ -197,6 +216,7 @@
 
 .media-details-reviews-heading {
   font-size: 1rem;
+  font-weight: 650;
   margin: 0 0 var(--space-3);
 }
 
@@ -212,5 +232,6 @@
   .review-submit,
   .review-delete {
     justify-self: stretch;
+    width: 100%;
   }
 }

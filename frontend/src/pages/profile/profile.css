@@ -2,8 +2,8 @@
   display: grid;
   gap: var(--space-6);
   margin: 0 auto;
-  max-width: 860px;
-  padding: var(--space-6) 0;
+  max-width: 700px;
+  padding: var(--space-6) 0 var(--space-8);
 }
 
 .profile-heading {
@@ -13,6 +13,11 @@
   justify-content: space-between;
 }
 
+.profile-heading h1 {
+  font-size: clamp(1.85rem, 3vw, 2.4rem);
+  max-width: none;
+}
+
 .profile-heading-actions {
   align-items: center;
   display: flex;
@@ -20,12 +25,13 @@
   gap: var(--space-3);
 }
 
-.profile-card, .profile-form {
+.profile-card,
+.profile-form {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
-  padding: clamp(var(--space-5), 5vw, var(--space-8));
+  box-shadow: none;
+  padding: clamp(var(--space-5), 4vw, var(--space-8));
 }
 
 .profile-identity {
@@ -37,13 +43,13 @@
 .profile-avatar {
   align-items: center;
   background: var(--color-surface-raised);
-  border-radius: 50%;
+  border-radius: var(--radius-pill);
   display: flex;
-  flex: 0 0 84px;
-  height: 84px;
+  flex: 0 0 72px;
+  height: 72px;
   justify-content: center;
   overflow: hidden;
-  width: 84px;
+  width: 72px;
 }
 
 .profile-avatar-image {
@@ -53,10 +59,10 @@
 }
 
 .profile-avatar-fallback {
-  color: var(--color-primary);
+  color: var(--color-accent-text);
   font-family: var(--font-display);
-  font-size: 1.6rem;
-  font-weight: 800;
+  font-size: 1.4rem;
+  font-weight: 600;
 }
 
 .profile-avatar-preview {
@@ -74,7 +80,7 @@
 }
 
 .avatar-fieldset legend {
-  font-weight: 700;
+  font-weight: 650;
   padding: 0 var(--space-2);
 }
 
@@ -92,18 +98,23 @@
 }
 
 .avatar-file::file-selector-button {
-  background: var(--color-secondary);
-  border: 0;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  color: white;
+  color: var(--color-text);
   cursor: pointer;
   font: inherit;
-  font-weight: 700;
-  margin-right: var(--space-3);
+  font-weight: 600;
   padding: 0.45rem 0.75rem;
+  transition: border-color var(--transition);
+}
+
+.avatar-file::file-selector-button:hover {
+  border-color: var(--color-border-strong);
 }
 
 .avatar-remove {
+  color: var(--color-danger);
   font-size: 0.85rem;
 }
 
@@ -113,15 +124,19 @@
 
 .profile-avatar-note {
   color: var(--color-danger);
+  font-size: 0.85rem;
   margin-top: var(--space-3);
 }
 
-.profile-username, .profile-member, .field-help {
+.profile-username,
+.profile-member,
+.field-help {
   color: var(--color-muted);
   font-size: 0.85rem;
 }
 
-.field-help-error, .field-help-error.field-help {
+.field-help-error,
+.field-help-error.field-help {
   color: var(--color-danger);
 }
 
@@ -152,17 +167,28 @@
 .profile-form label {
   display: grid;
   gap: var(--space-2);
-  font-weight: 700;
+  font-weight: 650;
 }
 
-.profile-form input, .profile-form textarea, .profile-form select {
-  background: var(--color-background);
+.profile-form input,
+.profile-form textarea,
+.profile-form select {
+  background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   color: var(--color-text);
   font: inherit;
-  padding: 0.8rem 0.9rem;
+  font-size: 0.9rem;
+  padding: 0.7rem 0.8rem;
   width: 100%;
+}
+
+.profile-form input:focus,
+.profile-form textarea:focus,
+.profile-form select:focus {
+  border-color: var(--color-border-strong);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
 }
 
 .profile-form textarea {
@@ -170,7 +196,8 @@
 }
 
 .profile-form-message {
-  color: var(--color-primary);
+  color: var(--color-muted);
+  font-size: 0.85rem;
   min-height: 1.3rem;
 }
 
@@ -178,7 +205,7 @@
   display: grid;
   gap: var(--space-4);
   justify-items: start;
-  margin: 15vh auto;
+  margin: var(--space-8) auto;
   max-width: 680px;
   padding: var(--space-6);
   text-align: center;

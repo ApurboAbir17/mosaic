@@ -1,14 +1,13 @@
 .search-suggestions {
-  backdrop-filter: blur(10px);
-  background: color-mix(in srgb, var(--color-surface-raised) 96%, transparent);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   box-shadow: var(--shadow-card);
   color: var(--color-text);
   left: 0;
   list-style: none;
   margin: 0;
-  max-height: min(24rem, 60vh);
+  max-height: min(22rem, 60vh);
   overflow-y: auto;
   padding: var(--space-2);
   position: absolute;
@@ -31,18 +30,19 @@
   display: flex;
   gap: var(--space-3);
   padding: var(--space-2);
+  transition: background-color var(--transition);
 }
 
 .search-suggestion:hover,
 .search-suggestion.is-active {
-  background: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  background: var(--color-surface-raised);
 }
 
 .search-suggestion-poster {
   align-items: center;
   aspect-ratio: 2 / 3;
-  background: var(--color-surface);
-  border-radius: calc(var(--radius-sm) / 2);
+  background: var(--color-surface-raised);
+  border-radius: var(--radius-xs);
   display: flex;
   flex: 0 0 2.25rem;
   justify-content: center;
@@ -56,9 +56,9 @@
 }
 
 .search-suggestion-poster-fallback {
-  color: var(--color-muted);
+  color: var(--color-faint);
   font-size: 0.55rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.1;
   padding: 0.15rem;
   text-align: center;
@@ -73,37 +73,32 @@
 
 .search-suggestion-title {
   font-size: 0.92rem;
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .search-suggestion-match {
-  background: color-mix(in srgb, var(--color-primary) 22%, transparent);
-  border-radius: 0.2rem;
-  color: var(--color-primary);
-  font-weight: 800;
-}
-
-[data-theme] .search-suggestion-match {
-  background: color-mix(in srgb, var(--color-primary) 35%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border-radius: var(--radius-xs);
   color: var(--color-primary-ink);
+  font-weight: 700;
 }
 
 .search-suggestion-meta {
   color: var(--color-muted);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
 }
 
 .search-suggestions-header {
   align-items: center;
-  color: var(--color-muted);
+  color: var(--color-faint);
   display: flex;
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-size: 0.7rem;
+  font-weight: 700;
   justify-content: space-between;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.12em;
   padding: var(--space-1) var(--space-2) var(--space-2);
   text-transform: uppercase;
 }
@@ -114,10 +109,10 @@
   color: var(--color-muted);
   cursor: pointer;
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 600;
   padding: 0;
   text-decoration: underline;
-  transition: color 150ms ease;
+  transition: color var(--transition);
 }
 
 .search-suggestions-clear:hover {
@@ -132,10 +127,10 @@
   align-items: center;
   color: var(--color-muted);
   display: flex;
-  font-size: 0.95rem;
-  height: 2.25rem;
+  font-size: 0.9rem;
+  height: 2rem;
   justify-content: center;
-  width: 2.25rem;
+  width: 2rem;
 }
 
 .search-suggestion-recent .search-suggestion-text {
@@ -150,16 +145,16 @@
   color: var(--color-muted);
   cursor: pointer;
   display: flex;
-  font-size: 1.1rem;
+  font-size: 1rem;
   height: 1.75rem;
   justify-content: center;
   line-height: 1;
   padding: 0;
-  transition: color 150ms ease, background-color 150ms ease;
+  transition: background-color var(--transition), color var(--transition);
   width: 1.75rem;
 }
 
 .search-suggestion-remove:hover {
-  background: color-mix(in srgb, var(--color-danger) 20%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
   color: var(--color-danger);
 }

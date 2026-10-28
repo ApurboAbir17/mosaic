@@ -1,24 +1,26 @@
 .auth-page {
   display: grid;
   margin: 0 auto;
-  max-width: 34rem;
-  min-height: 70vh;
+  max-width: 30rem;
+  min-height: 80vh;
   place-items: center;
-  padding: var(--space-8) 0;
+  padding: var(--space-8) 0 var(--space-6);
 }
 
 .auth-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-md);
+  box-shadow: none;
   padding: clamp(var(--space-5), 6vw, var(--space-8));
   width: 100%;
 }
 
 .auth-card h1 {
-  font-size: clamp(2.25rem, 8vw, 4rem);
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 6vw, 2.7rem);
   margin: var(--space-2) 0 var(--space-3);
+  max-width: none;
 }
 
 .auth-form {
@@ -28,36 +30,55 @@
 }
 
 .auth-form label {
-  display: grid;
-  font-weight: 700;
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
   gap: var(--space-2);
 }
 
 .auth-form input {
-  background: var(--color-bg);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   color: var(--color-text);
-  padding: 0.8rem;
+  font-size: 0.9rem;
+  padding: 0.7rem 0.8rem;
+  width: 100%;
 }
 
 .auth-form input:focus {
-  border-color: var(--color-primary);
-  outline: 2px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+  border-color: var(--color-border-strong);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
 }
 
 .auth-form button {
   justify-self: start;
+  width: 100%;
 }
 
 .auth-message {
   border-radius: var(--radius-sm);
   color: var(--color-danger);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   min-height: 1.4rem;
+  padding: var(--space-2) 0;
 }
 
 .auth-switch {
   color: var(--color-muted);
-  margin-top: var(--space-5);
+  font-size: 0.875rem;
+  margin-top: var(--space-6);
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .auth-page {
+    padding: var(--space-6) 0 var(--space-5);
+  }
+
+  .auth-card {
+    padding: var(--space-6);
+  }
 }
