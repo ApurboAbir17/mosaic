@@ -40,6 +40,7 @@ const searchInput = document.querySelector("#global-search");
 let currentUser = null;
 let currentProfile = null;
 let sessionLoaded = false;
+let sessionGeneration = 0;
 
 function updateThemeToggle() {
   const resolved = resolveTheme(getTheme());
@@ -178,18 +179,22 @@ async function loadSession() {
     updateAuthControls();
     return;
   }
+  const generation = sessionGeneration;
+  let user = null;
   try {
-    currentUser = await authService.me();
+    user = await authService.me();
   } catch {
-    currentUser = null;
+    user = null;
   }
+  if (generation !== sessionGeneration) return;
 
-  currentProfile = null;
-  if (currentUser) {
+  currentUser = user;
+  let profile = null;
+  if (user) {
     try {
-      currentProfile = await profileService.get();
+      profile = await profileService.get();
     } catch {
-      currentProfile = null;
+      profile = null;
     }
     try {
       // The account theme wins over the local preference once it is known.
@@ -199,7 +204,9 @@ async function loadSession() {
       // A settings failure must not block the page; the local theme stays.
     }
   }
+  if (generation !== sessionGeneration) return;
 
+  currentProfile = profile;
   sessionLoaded = true;
   updateAuthControls();
   updateThemeToggle();
@@ -243,6 +250,8 @@ function renderRoute() {
       const destination = new URLSearchParams(window.location.search).get("redirect");
       const safeDestination = safeRedirectPath(destination ?? "/dashboard");
       window.history.pushState({}, "", safeDestination);
+      sessionGeneration += 1;
+      sessionLoaded = false;
       loadSession().then(renderRoute);
     });
   } else if (path === "/profile") {
