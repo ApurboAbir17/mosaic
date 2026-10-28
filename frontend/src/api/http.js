@@ -1,7 +1,5 @@
 const configuredAPIOrigin = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
-const API_ORIGIN = import.meta.env.DEV
-  ? ""
-  : configuredAPIOrigin || "https://mosaic-api-5q09.onrender.com";
+const API_ORIGIN = import.meta.env.DEV ? "" : configuredAPIOrigin;
 const API_PREFIX = `${API_ORIGIN}/api/v1`;
 
 // Absolute URL for an API path, for use in attributes such as img src.

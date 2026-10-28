@@ -34,10 +34,6 @@ changing requests use an exact configured Origin check. Authentication uses
 Argon2id and hashed session tokens. Rate limiting and a browser-level multipart
 upload test remain `[TODO]`.
 
-Production API requests use the configured `VITE_API_BASE_URL`, falling back
-to the documented Render API origin when that build variable is absent. A
-different deployment must configure its own API origin in the frontend build.
-
 ## Evidence
 
 - `frontend/vite.config.js`
@@ -47,6 +43,8 @@ different deployment must configure its own API origin in the frontend build.
 - `backend/internal/profile/service.go`
 - `frontend/src/api/http.js`
 - `frontend/src/auth/auth-service.js`
+- `frontend/src/pages/auth/auth.js`
+- `frontend/src/main.js`
 - `README.md`
 - `frontend/src/profile/profile-service.js`
 - `supabase/migrations/20261014120000_profile_avatar_upload.sql`
