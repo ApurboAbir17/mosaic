@@ -15,24 +15,26 @@ input {
 .app-shell {
   display: grid;
   height: 100vh;
-  grid-template-columns: 15rem minmax(0, 1fr);
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
   overflow: hidden;
 }
 
 .app-shell.sidebar-is-collapsed {
-  grid-template-columns: 4.5rem minmax(0, 1fr);
+  grid-template-columns: var(--sidebar-collapsed) minmax(0, 1fr);
 }
 
 .app-content {
   height: 100vh;
   min-width: 0;
   overflow-y: auto;
+  scrollbar-color: var(--color-border) transparent;
+  scrollbar-width: thin;
 }
 
 .shell {
   margin: 0 auto;
-  max-width: 84rem;
-  padding: var(--space-5);
+  max-width: var(--content-max);
+  padding: clamp(1.25rem, 3vw, 2.5rem);
   width: 100%;
 }
 
@@ -55,23 +57,23 @@ input {
 }
 
 .topbar {
-  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  background: var(--color-bg);
   border-bottom: 1px solid var(--color-border);
   gap: var(--space-4);
-  min-height: 4.5rem;
-  padding: var(--space-3) var(--space-5);
+  min-height: var(--topbar-height);
+  padding: var(--space-3) clamp(1.25rem, 3vw, 2.5rem);
   position: sticky;
   top: 0;
   z-index: 5;
 }
 
 .sidebar {
-  background: var(--color-surface);
+  background: var(--color-bg);
   border-right: 1px solid var(--color-border);
   height: 100vh;
   overflow-x: hidden;
   overflow-y: auto;
-  padding: var(--space-5) var(--space-3);
+  padding: 1.25rem 0.75rem;
   scrollbar-color: var(--color-border) transparent;
   scrollbar-width: thin;
   transition: width 180ms ease;
@@ -82,20 +84,38 @@ input {
 }
 
 .sidebar-brand {
-  padding: 0 var(--space-2) var(--space-6);
+  padding: 0.25rem 0.5rem 1.75rem;
+}
+
+.brand {
+  align-items: center;
+  display: inline-flex;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 650;
+  gap: var(--space-2);
+  letter-spacing: -0.03em;
+}
+
+.brand-mark {
+  display: block;
+  flex: 0 0 1.75rem;
+  height: 1.75rem;
+  object-fit: contain;
+  width: 1.75rem;
 }
 
 .sidebar-nav {
   display: grid;
-  gap: var(--space-2);
+  gap: 2px;
 }
 
 .nav-heading {
-  color: var(--color-muted);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  margin: var(--space-4) var(--space-3) var(--space-1);
+  color: var(--color-faint);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  margin: 1.25rem 0.75rem 0.35rem;
   text-transform: uppercase;
 }
 
@@ -104,74 +124,63 @@ input {
   border-radius: var(--radius-sm);
   color: var(--color-muted);
   display: flex;
+  font-size: 0.875rem;
+  font-weight: 500;
   gap: var(--space-3);
-  padding: 0.7rem var(--space-3);
+  padding: 0.55rem 0.75rem;
   position: relative;
-  transform: translate3d(0, 0, 0);
-  transition:
-    background-color 180ms ease,
-    color 180ms ease,
-    box-shadow 180ms ease,
-    transform 180ms ease;
+  transition: background-color var(--transition), color var(--transition), box-shadow var(--transition);
 }
 
 .sidebar-icon {
-  flex: 0 0 24px;
-  height: 24px;
-  width: 24px;
+  flex: 0 0 20px;
+  height: 20px;
+  opacity: 0.82;
+  width: 20px;
 }
 
 .nav-link:hover,
 .nav-link.is-active {
-  background: var(--color-surface-raised);
+  background: var(--color-surface);
   color: var(--color-text);
 }
 
-.nav-link:not(.nav-link-disabled):hover,
-.nav-link:not(.nav-link-disabled):focus-visible {
-  box-shadow:
-    0 0.5rem 1.25rem rgb(0 0 0 / 18%),
-    inset 3px 0 var(--color-primary);
-  transform: translate3d(0.2rem, -0.1rem, 0) scale(1.02);
+.nav-link:not(.nav-link-disabled):hover {
+  box-shadow: inset 2px 0 var(--color-border-strong);
 }
 
-.nav-link:not(.nav-link-disabled):focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+.nav-link.is-active {
+  box-shadow: inset 2px 0 var(--color-primary);
+  color: var(--color-text);
 }
 
-.nav-link-disabled:hover {
-  background: var(--color-surface-raised);
-  box-shadow: 0 0.5rem 1.25rem rgb(0 0 0 / 12%);
-  color: var(--color-muted);
-  transform: translate3d(0.2rem, -0.1rem, 0) scale(1.02);
+.nav-link.is-active .sidebar-icon {
+  opacity: 1;
 }
 
 .nav-link-disabled {
   cursor: not-allowed;
-  opacity: 0.62;
+  opacity: 0.38;
 }
 
-.nav-link.is-active {
-  box-shadow: inset 3px 0 var(--color-primary);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .nav-link {
-    transition: none;
-  }
-}
-
-.sidebar-collapsed {
-  width: 4.5rem;
+.nav-link-disabled:hover {
+  background: transparent;
+  box-shadow: none;
+  color: var(--color-muted);
 }
 
 .sidebar-collapsed .sidebar-label {
   display: none;
 }
 
+.sidebar-collapsed .sidebar-brand {
+  justify-content: center;
+  padding-inline: 0;
+}
+
 .sidebar-collapsed .nav-link {
   justify-content: center;
+  padding-inline: 0.5rem;
 }
 
 .mobile-brand {
@@ -188,25 +197,36 @@ input {
   align-items: center;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 999px;
-  color: var(--color-muted);
+  border-radius: var(--radius-sm);
+  color: var(--color-faint);
   display: flex;
   gap: var(--space-2);
   margin: 0 auto;
-  max-width: 32rem;
-  padding: 0 var(--space-4);
+  max-width: 28rem;
+  padding: 0 var(--space-3);
   position: relative;
+  transition: border-color var(--transition), background-color var(--transition);
   width: 100%;
+}
+
+.search-field:focus-within {
+  background: var(--color-surface-raised);
+  border-color: var(--color-border-strong);
 }
 
 .search-field input {
   background: transparent;
   border: 0;
   color: var(--color-text);
+  font-size: 0.875rem;
   min-width: 0;
   outline: 0;
-  padding: 0.7rem 0;
+  padding: 0.62rem 0;
   width: 100%;
+}
+
+.search-field input::placeholder {
+  color: var(--color-faint);
 }
 
 .search-submit {
@@ -214,29 +234,13 @@ input {
   border: 0;
   color: var(--color-muted);
   cursor: pointer;
-  font-size: 1rem;
-  padding: 0.5rem 0;
+  font-size: 0.95rem;
+  padding: 0.4rem 0;
+  transition: color var(--transition);
 }
 
 .search-submit:hover {
   color: var(--color-text);
-}
-
-.brand {
-  align-items: center;
-  display: inline-flex;
-  font-family: var(--font-display);
-  font-size: 1.35rem;
-  font-weight: 800;
-  gap: var(--space-2);
-}
-
-.brand-mark {
-  display: block;
-  flex: 0 0 2rem;
-  height: 2rem;
-  object-fit: contain;
-  width: 2rem;
 }
 
 .avatar-button,
@@ -246,17 +250,17 @@ input {
 }
 
 .avatar-button {
-  background: var(--color-secondary);
+  background: var(--color-surface-raised);
   border-radius: 50%;
-  color: white;
+  color: var(--color-text);
   display: grid;
-  font-size: 0.72rem;
-  font-weight: 800;
-  height: 2.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  height: 2rem;
   overflow: hidden;
   padding: 0;
   place-items: center;
-  width: 2.25rem;
+  width: 2rem;
 }
 
 .avatar-button[hidden] {
@@ -271,19 +275,26 @@ input {
 }
 
 .icon-button {
+  align-items: center;
   background: transparent;
   border-radius: var(--radius-sm);
   color: var(--color-text);
-  font-size: 1.2rem;
-  padding: 0.45rem 0.65rem;
+  display: inline-flex;
+  font-size: 1rem;
+  height: 2.1rem;
+  justify-content: center;
+  padding: 0;
+  transition: background-color var(--transition), border-color var(--transition);
+  width: 2.1rem;
+}
+
+.icon-button:hover {
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
 }
 
 .hero-panel {
-  background: linear-gradient(
-    120deg,
-    var(--color-surface),
-    var(--color-surface-raised)
-  );
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -291,22 +302,10 @@ input {
   position: relative;
 }
 
-.hero-panel::after {
-  background: var(--color-secondary);
-  border-radius: 50%;
-  content: "";
-  filter: blur(80px);
-  height: 14rem;
-  opacity: 0.3;
-  position: absolute;
-  right: 4%;
-  top: 10%;
-  width: 14rem;
-}
-
 .hero-copy {
   color: var(--color-muted);
-  font-size: 1.1rem;
+  font-size: 1rem;
+  line-height: 1.65;
   margin: var(--space-4) 0 var(--space-5);
   max-width: 34rem;
 }
@@ -320,4 +319,15 @@ input {
   gap: var(--space-4);
   grid-template-columns: repeat(3, 1fr);
   margin-top: var(--space-5);
+}
+
+/* The sidebar icons are fixed-color SVG assets. Darken them only in light mode. */
+:root[data-theme] .sidebar-icon {
+  filter: brightness(0.42) saturate(0);
+}
+
+@media (hover: hover) {
+  .nav-link:not(.nav-link-disabled):hover .sidebar-icon {
+    opacity: 1;
+  }
 }

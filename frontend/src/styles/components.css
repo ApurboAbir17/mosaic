@@ -1,25 +1,43 @@
 .button {
+  align-items: center;
   border: 1px solid transparent;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 800;
-  padding: 0.7rem 1.1rem;
-  transition: transform 150ms ease, background-color 150ms ease;
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 600;
+  gap: var(--space-2);
+  justify-content: center;
+  line-height: 1;
+  padding: 0.62rem 0.95rem;
+  transition: background-color var(--transition), border-color var(--transition), color var(--transition), opacity var(--transition);
+  white-space: nowrap;
 }
 
-.button:hover {
-  transform: translateY(-2px);
+.button:disabled,
+.button[disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .button-primary {
   background: var(--color-primary);
+  border-color: var(--color-primary);
   color: var(--color-primary-ink);
 }
 
+.button-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-primary) 88%, var(--color-text));
+}
+
 .button-secondary {
-  background: var(--color-secondary);
-  color: white;
+  background: var(--color-surface-raised);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.button-secondary:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
 }
 
 .button-ghost {
@@ -28,11 +46,16 @@
   color: var(--color-text);
 }
 
+.button-ghost:hover:not(:disabled) {
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
+}
+
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -50,16 +73,17 @@
 .poster-placeholder {
   align-items: center;
   aspect-ratio: 16 / 10;
-  background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
-  color: var(--color-primary-ink);
+  background: var(--color-surface-raised);
+  color: var(--color-accent-text);
   display: flex;
   font-family: var(--font-display);
   font-size: 2rem;
-  font-weight: 800;
+  font-weight: 600;
   justify-content: center;
 }
 
-.card-meta, .rating {
+.card-meta,
+.rating {
   color: var(--color-muted);
   font-size: 0.8rem;
 }
@@ -80,53 +104,69 @@
 }
 
 .rating {
-  color: var(--color-primary);
-  font-weight: 800;
+  color: var(--color-accent-text);
+  font-weight: 650;
 }
 
 .badge {
   background: var(--color-surface-raised);
-  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
   color: var(--color-muted);
   display: inline-flex;
-  font-size: 0.72rem;
-  font-weight: 800;
-  padding: 0.35rem 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.5;
+  padding: 0.16rem 0.45rem;
 }
 
 .badge-accent {
   background: var(--color-primary);
+  border-color: var(--color-primary);
   color: var(--color-primary-ink);
 }
 
 .field-label {
-  font-size: 0.8rem;
-  font-weight: 800;
+  font-size: 0.78rem;
+  font-weight: 650;
 }
 
 .input {
-  background: var(--color-bg);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   color: var(--color-text);
-  padding: 0.75rem;
+  padding: 0.7rem 0.8rem;
+  transition: border-color var(--transition), background-color var(--transition);
   width: 100%;
 }
 
+.input:hover {
+  border-color: var(--color-border-strong);
+}
+
 .input:focus {
-  border-color: var(--color-primary);
-  outline: 2px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+  border-color: var(--color-border-strong);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
 }
 
 .state {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
   padding: var(--space-3);
 }
 
-.state-loading { background: var(--color-surface-raised); color: var(--color-muted); }
-.state-success { background: color-mix(in srgb, var(--color-success) 15%, transparent); color: var(--color-success); }
-.state-empty { background: color-mix(in srgb, var(--color-secondary) 15%, transparent); color: var(--color-secondary); }
+.state-loading,
+.state-empty {
+  color: var(--color-muted);
+}
+
+.state-success {
+  color: var(--color-success);
+}
 
 .state-stack {
   display: grid;
@@ -156,14 +196,17 @@
   background: var(--color-text);
   border-radius: var(--radius-sm);
   bottom: var(--space-5);
+  box-shadow: var(--shadow-overlay);
   color: var(--color-bg);
+  font-size: 0.875rem;
   opacity: 0;
   padding: var(--space-3) var(--space-4);
   pointer-events: none;
   position: fixed;
   right: var(--space-5);
-  transform: translateY(1rem);
+  transform: translateY(0.5rem);
   transition: opacity 180ms ease, transform 180ms ease;
+  z-index: 20;
 }
 
 .toast-visible {
@@ -175,7 +218,7 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-overlay);
   color: var(--color-text);
   max-width: min(32rem, calc(100% - 2rem));
   padding: var(--space-5);
@@ -183,8 +226,8 @@
 }
 
 .modal::backdrop {
-  background: rgb(5 5 12 / 65%);
-  backdrop-filter: blur(4px);
+  background: var(--color-overlay);
+  backdrop-filter: blur(2px);
 }
 
 .modal-header {
@@ -200,4 +243,20 @@
   gap: var(--space-3);
   justify-content: flex-end;
   margin-top: var(--space-6);
+}
+
+@media (max-width: 640px) {
+  .modal-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions .button {
+    width: 100%;
+  }
+
+  .toast {
+    left: var(--space-4);
+    right: var(--space-4);
+  }
 }
