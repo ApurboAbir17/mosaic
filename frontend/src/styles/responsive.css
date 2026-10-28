@@ -26,7 +26,7 @@
     height: auto;
     box-shadow: var(--shadow-card);
     left: 0;
-    max-width: 17rem;
+    max-width: 18rem;
     overflow-y: auto;
     position: fixed;
     top: 0;
@@ -58,6 +58,14 @@
     pointer-events: auto;
   }
 
+  .sidebar-nav {
+    gap: 1px;
+  }
+
+  .nav-heading {
+    margin: 1rem 0.75rem 0.3rem;
+  }
+
   .mobile-brand {
     display: inline-flex;
   }
@@ -65,7 +73,8 @@
   .topbar {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
-    padding: var(--space-3) var(--space-4);
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-4);
   }
 
   .topbar .search-field {
@@ -80,18 +89,23 @@
     min-width: 0;
   }
 
-  .topbar .button-ghost {
+  #theme-toggle {
     font-size: 0;
-    padding: 0.65rem;
+    padding: 0.55rem;
+  }
+
+  #theme-toggle::before {
+    content: "☼";
+    font-size: 1rem;
   }
 
   .topbar-auth-action {
     display: none;
   }
 
-  .topbar .button-ghost::before {
-    content: "☼";
+  .topbar .button-ghost {
     font-size: 1rem;
+    padding: 0.55rem;
   }
 
   .showcase-grid {
@@ -104,22 +118,28 @@
 
   .explore-intro {
     min-height: 20rem;
+    padding: var(--space-5) 0 var(--space-6);
+  }
+
+  .explore-intro h1 {
+    font-size: clamp(2.2rem, 10vw, 3.2rem);
+  }
+
+  .featured-media,
+  .featured-media-content {
+    min-height: 20rem;
   }
 
   .media-row {
     gap: var(--space-4);
-    grid-auto-columns: minmax(9rem, 28vw);
+    grid-auto-columns: minmax(8.5rem, 28vw);
     scrollbar-width: auto;
   }
 
   .section-heading {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .search-page-heading {
-    align-items: flex-start;
-    flex-direction: column;
+    gap: var(--space-2);
   }
 
   .search-controls-bar {
@@ -128,14 +148,12 @@
     gap: var(--space-3);
   }
 
+  .search-sort-wrapper {
+    width: 100%;
+  }
+
   .search-results-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 480px) {
-  .shell {
-    padding: var(--space-4);
   }
 
   .search-landing {
@@ -150,6 +168,50 @@
     padding: var(--space-2);
   }
 
+  .profile-heading,
+  .profile-heading-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile-heading-actions {
+    width: 100%;
+  }
+
+  .settings-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .settings-row {
+    padding: var(--space-3);
+  }
+
+  .settings-details div {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .settings-details dd {
+    text-align: left;
+  }
+
+  .button-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .shell {
+    padding: var(--space-4);
+  }
+
+  .search-landing-header h1 {
+    font-size: 2rem;
+  }
+
   .topbar {
     gap: var(--space-3);
     margin-bottom: var(--space-4);
@@ -160,41 +222,26 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .button-row {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
   .featured-media,
   .featured-media-content {
-    min-height: 26rem;
+    min-height: 18rem;
   }
 
   .explore-intro {
-    min-height: 22rem;
-    padding: var(--space-5);
+    min-height: 18rem;
+    padding: var(--space-5) 0 var(--space-6);
   }
 
   .explore-intro h1 {
-    font-size: clamp(2.35rem, 12vw, 3.6rem);
+    font-size: clamp(2rem, 12vw, 2.9rem);
   }
 
-  .featured-media-content {
-    padding: var(--space-5);
+  .media-card-content h3 {
+    font-size: 0.8rem;
   }
 
-  .media-row {
-    gap: var(--space-4);
-    grid-auto-columns: minmax(8.5rem, 42vw);
-  }
-
-  .media-row-shell {
-    gap: var(--space-2);
-  }
-
-  .row-control {
-    height: 2.75rem;
-    width: 2.75rem;
+  .dash-grid {
+    grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
   }
 }
 
@@ -217,11 +264,15 @@
   }
 
   .explore-intro h1 {
-    font-size: 2.2rem;
+    font-size: 2.1rem;
   }
 
   .featured-media,
   .featured-media-content {
-    min-height: 24rem;
+    min-height: 16rem;
+  }
+
+  .dash-grid {
+    grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
   }
 }
