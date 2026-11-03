@@ -225,3 +225,10 @@
     min-height: 24rem;
   }
 }
+
+@media (max-width: 480px) {
+  .profile-dropdown-menu {
+    right: -0.25rem;
+    width: min(16rem, calc(100vw - 1.5rem));
+  }
+}
