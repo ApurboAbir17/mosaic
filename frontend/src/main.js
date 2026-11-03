@@ -33,6 +33,11 @@ const loginButton = document.querySelector("#login-button");
 const registerButton = document.querySelector("#register-button");
 const topbarLogoutButton = document.querySelector("#topbar-logout-button");
 const profileButton = document.querySelector("#profile-button");
+const profileDropdownContainer = document.querySelector("#profile-dropdown-container");
+const profileDropdownMenu = document.querySelector("#profile-dropdown-menu");
+const dropdownAvatar = document.querySelector("#dropdown-avatar");
+const dropdownUserName = document.querySelector("#dropdown-user-name");
+const dropdownUserEmail = document.querySelector("#dropdown-user-email");
 const navLinks = document.querySelectorAll(".nav-link");
 const content = document.querySelector("#app-content");
 const searchForm = document.querySelector("#global-search-form");
@@ -60,6 +65,27 @@ async function applyThemeWithAccountSave(theme, previousTheme) {
   } catch (error) {
     applyTheme(previousTheme);
     showMessage(error.message);
+  }
+}
+
+function openProfileDropdown() {
+  if (!currentUser || !profileDropdownMenu) return;
+  profileDropdownMenu.hidden = false;
+  profileButton.setAttribute("aria-expanded", "true");
+}
+
+function closeProfileDropdown() {
+  if (!profileDropdownMenu || profileDropdownMenu.hidden) return;
+  profileDropdownMenu.hidden = true;
+  profileButton.setAttribute("aria-expanded", "false");
+}
+
+function toggleProfileDropdown() {
+  if (!profileDropdownMenu) return;
+  if (profileDropdownMenu.hidden) {
+    openProfileDropdown();
+  } else {
+    closeProfileDropdown();
   }
 }
 
@@ -119,20 +145,42 @@ function topbarInitials() {
 function updateAuthControls() {
   loginButton.hidden = Boolean(currentUser);
   registerButton.hidden = Boolean(currentUser);
-  topbarLogoutButton.hidden = !currentUser;
+  if (profileDropdownContainer) {
+    profileDropdownContainer.hidden = !currentUser;
+  }
   profileButton.hidden = !currentUser;
+  closeProfileDropdown();
+
   if (currentUser) {
-    renderAvatar(profileButton, avatarSource(currentProfile), {
+    const avatarUrl = avatarSource(currentProfile);
+    const initials = topbarInitials();
+    renderAvatar(profileButton, avatarUrl, {
       imageClass: "avatar-button-image",
-      initials: topbarInitials()
+      initials
     });
+    if (dropdownAvatar) {
+      renderAvatar(dropdownAvatar, avatarUrl, {
+        imageClass: "avatar-button-image",
+        initials
+      });
+    }
+    if (dropdownUserName) {
+      dropdownUserName.textContent = currentProfile?.display_name || currentProfile?.username || (currentUser.email ? currentUser.email.split("@")[0] : "User");
+    }
+    if (dropdownUserEmail) {
+      dropdownUserEmail.textContent = currentUser.email || "";
+    }
   } else {
     profileButton.replaceChildren();
+    if (dropdownAvatar) {
+      dropdownAvatar.replaceChildren();
+    }
   }
-  profileButton.setAttribute("aria-label", currentUser ? `Open account for ${currentUser.email}` : "Open profile");
+  profileButton.setAttribute("aria-label", currentUser ? `Open account menu for ${currentUser.email}` : "Open profile menu");
 }
 
 async function logout() {
+  closeProfileDropdown();
   topbarLogoutButton.disabled = true;
   try {
     await authService.logout();
@@ -236,6 +284,7 @@ function renderSettingsRoute(path) {
 }
 
 function renderRoute() {
+  closeProfileDropdown();
   const path = window.location.pathname;
   const params = new URLSearchParams(window.location.search);
   content.mediaDetailsRenderToken = Symbol("route-change");
@@ -370,12 +419,41 @@ registerButton.addEventListener("click", () => {
   window.location.href = "/register";
 });
 topbarLogoutButton.addEventListener("click", logout);
-profileButton.addEventListener("click", () => {
+
+profileButton.addEventListener("click", (event) => {
+  event.stopPropagation();
   if (currentUser) {
-    window.history.pushState({}, "", "/profile");
-    renderRoute();
+    toggleProfileDropdown();
   } else {
     showMessage("Sign in to open your profile.");
+  }
+});
+
+if (profileDropdownMenu) {
+  const dropdownNavLinks = profileDropdownMenu.querySelectorAll("a.profile-dropdown-item");
+  dropdownNavLinks.forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      closeProfileDropdown();
+      const href = link.getAttribute("href");
+      if (href) {
+        window.history.pushState({}, "", href);
+        renderRoute();
+      }
+    });
+  });
+}
+
+document.addEventListener("click", (event) => {
+  if (profileDropdownContainer && !profileDropdownContainer.contains(event.target)) {
+    closeProfileDropdown();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && profileDropdownMenu && !profileDropdownMenu.hidden) {
+    closeProfileDropdown();
+    profileButton.focus();
   }
 });
 
@@ -427,6 +505,7 @@ searchForm.addEventListener("submit", (event) => {
 
 window.addEventListener("popstate", () => {
   searchSuggestions.close();
+  closeProfileDropdown();
   loadSession().then(renderRoute);
 });
 
