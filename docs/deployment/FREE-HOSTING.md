@@ -140,3 +140,20 @@ limits and policies change:
 - <https://render.com/docs/free>
 - <https://render.com/docs/deploy-go-nethttp>
 - <https://supabase.com/pricing>
+
+### Cloudflare challenge on API requests
+
+The Pages Function handles browser `/api/*` calls, but Cloudflare security
+rules run before the function. A response with `cf-mitigated: challenge` and
+`Content-Type: text/html` means Cloudflare returned a Challenge Page instead
+of forwarding the API request. Fetch-based login and registration cannot
+complete an interstitial Challenge Page, so the Go auth handlers never receive
+that request.
+
+For a reported challenge, find the matching request in Cloudflare Security
+Events and inspect the action and rule ID. Adjust the responsible security
+rule for the affected API route (`POST /api/v1/auth/login` or
+`POST /api/v1/auth/register`) so an interactive challenge is not served to the
+JSON request. Keep abuse protection in place with an API-compatible control;
+do not disable security checks across the entire site. Verify both the
+Cloudflare Pages URL and the API response headers after changing the rule.
