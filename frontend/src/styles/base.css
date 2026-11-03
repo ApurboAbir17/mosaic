@@ -39,9 +39,14 @@ a {
 }
 
 .eyebrow {
-  color: var(--color-primary);
+  color: var(--color-eyebrow, var(--color-primary));
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+:root[data-theme] .eyebrow,
+[data-theme] .eyebrow {
+  color: var(--color-eyebrow, blue);
 }

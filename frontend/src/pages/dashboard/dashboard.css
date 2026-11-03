@@ -256,9 +256,14 @@
 }
 
 .dash-rating {
-  color: var(--color-primary);
+  color: var(--color-rating, var(--color-primary));
   font-weight: 800;
   white-space: nowrap;
+}
+
+:root[data-theme] .dash-rating,
+[data-theme] .dash-rating {
+  color: var(--color-rating, darkcyan);
 }
 
 .dash-error {

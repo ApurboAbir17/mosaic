@@ -10,6 +10,8 @@
   --color-border: #34334a;
   --color-primary: #c7ff4a;
   --color-primary-ink: #172000;
+  --color-eyebrow: var(--color-primary);
+  --color-rating: var(--color-primary);
   --color-secondary: #8d7aff;
   --color-success: #72e2a0;
   --color-danger: #ff8b9e;
@@ -36,5 +38,7 @@
   --color-muted: #656276;
   --color-border: #d8d5e3;
   --color-primary-ink: #253000;
+  --color-eyebrow: blue;
+  --color-rating: darkcyan;
   --shadow-card: 0 1rem 3rem rgb(44 38 75 / 10%);
 }
