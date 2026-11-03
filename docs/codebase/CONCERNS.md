@@ -8,6 +8,7 @@
 | medium | Uploaded avatar bytes are stored in the profile row | `backend/internal/profile/service.go`, `supabase/migrations/20261014120000_profile_avatar_upload.sql` | Keep the 2 MiB cap; migrate to object storage if profile volume or traffic grows. |
 | medium | Free hosting services may sleep or change limits | `docs/deployment/FREE-HOSTING.md` | Recheck provider terms before release and document cold starts. |
 | medium | Frontend has no automated browser tests | `frontend/package.json` | Add route/page tests or a browser smoke suite for authentication and navigation. |
+| high | Cloudflare can challenge API fetch requests before Pages Functions run, preventing login and registration from reaching the Go API | `docs/deployment/FREE-HOSTING.md`, `frontend/src/api/http.js` | Inspect Cloudflare Security Events for the matching rule and use an API-compatible mitigation for auth POSTs. |
 | medium | Collection, favorites, and watchlist share one `user_media` row | `backend/internal/domain/collection/service.go`, `backend/internal/domain/collection/watchlist.go` | Keep list removal membership-aware so one list never clears another; any new list must set or clear a flag rather than deleting the row. |
 
 ## Technical debt
@@ -32,8 +33,10 @@
 Production sessions use `HttpOnly`, `Secure`, and `SameSite=None`. The Pages
 Function keeps browser requests and cookies on the frontend origin, while the
 Go API checks the original request Origin. Authentication uses Argon2id and
-hashed session tokens. Rate limiting and a browser-level multipart upload test
-remain `[TODO]`.
+hashed session tokens. The Go auth endpoints do not implement rate limiting;
+an API-compatible edge or service-side abuse control is still needed. A
+Cloudflare Challenge Page cannot complete an XMLHttpRequest/fetch auth call.
+A browser-level multipart upload test remains `[TODO]`.
 
 ## Evidence
 

@@ -17,6 +17,11 @@ export async function requestJSON(path, options = {}) {
     headers,
     ...options
   });
+  if (response.headers.get("cf-mitigated") === "challenge") {
+    throw new Error(
+      "Cloudflare blocked this API request with a security challenge before Mosaic could process it. Please wait a few minutes and try again. If this keeps happening, contact support."
+    );
+  }
   if (response.status === 204) return null;
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
