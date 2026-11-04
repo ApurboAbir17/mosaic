@@ -13,9 +13,9 @@ import { renderCollectionPage } from "./pages/collection/collection.js";
 import { renderWatchlistPage } from "./pages/watchlist/watchlist.js";
 import { renderRatingsPage } from "./pages/ratings/ratings.js";
 import { renderReviewsPage } from "./pages/reviews/reviews.js";
+import { loadDeferredExploreMedia } from "./pages/explore/explore.js";
 import { saveRecentSearch } from "./utils/recent-searches.js";
 import { clearQueryCache } from "./api/query-cache.js";
-import { requestJSON } from "./api/http.js";
 import { settingsService } from "./settings/settings-service.js";
 import { applyTheme, getTheme, initTheme, resolveTheme } from "./theme/theme.js";
 import { renderSettingsOverview } from "./pages/settings/settings.js";
@@ -106,7 +106,7 @@ function showMessage(message) {
 async function monitorBackendStatus() {
   if (!backendStatus || !backendStatusMessage) return;
 
-  let retryDelay = 5000;
+  let retryDelay = 15000;
   const initialStatusDelay = window.setTimeout(() => {
     backendStatus.hidden = false;
   }, 2000);
@@ -115,10 +115,28 @@ async function monitorBackendStatus() {
     const controller = new AbortController();
     const requestTimeout = window.setTimeout(() => controller.abort(), 70000);
     try {
-      const health = await requestJSON("/health", {
+      const response = await fetch("/api/v1/health", {
+        credentials: "omit",
         cache: "no-store",
+        headers: { Accept: "application/json" },
         signal: controller.signal
       });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const error = new Error(payload.message ?? "The backend health check failed.");
+        error.status = response.status;
+        error.renderRouting = response.headers.get("x-render-routing") ?? "";
+        error.cfChallenge = response.headers.get("cf-mitigated") === "challenge";
+        const retryAfter = response.headers.get("retry-after");
+        if (retryAfter) {
+          const seconds = Number(retryAfter);
+          error.retryAfterMs = Number.isFinite(seconds)
+            ? seconds * 1000
+            : Math.max(0, Date.parse(retryAfter) - Date.now());
+        }
+        throw error;
+      }
+      const health = payload;
       if (health?.status !== "ok") {
         throw new Error("The backend health check did not return a ready status.");
       }
@@ -131,13 +149,19 @@ async function monitorBackendStatus() {
       backendStatus.hidden = false;
       backendStatusMessage.textContent = error.message.includes("not configured")
         ? "The backend is not configured for this deployment."
-        : "The backend is unavailable and retrying. Media will load when it is ready.";
+        : error.renderRouting === "hibernate-rate-limited" || error.status === 429
+          ? "Render is rate-limiting wake requests. Waiting before retrying."
+          : "The backend is unavailable and retrying. Media will load when it is ready.";
+      const recommendedDelay = error.retryAfterMs
+        ?? (error.renderRouting === "hibernate-rate-limited" ? 120000 : error.status === 429 ? 60000 : retryDelay);
+      retryDelay = Math.max(retryDelay, recommendedDelay);
     } finally {
       window.clearTimeout(requestTimeout);
     }
 
-    await new Promise((resolve) => window.setTimeout(resolve, retryDelay));
-    retryDelay = Math.min(retryDelay * 2, 30000);
+    const jitteredDelay = retryDelay + Math.random() * retryDelay * 0.1;
+    await new Promise((resolve) => window.setTimeout(resolve, jitteredDelay));
+    retryDelay = Math.min(retryDelay * 2, 300000);
   }
 }
 
@@ -570,9 +594,18 @@ if (!window.matchMedia("(max-width: 800px)").matches) {
   setSidebarCollapsed(true);
 }
 
+const isPublicExplorePath = () => window.location.pathname === "/" || window.location.pathname === "/explore";
+if (isPublicExplorePath()) {
+  void renderExplorePage(content, { deferMedia: true });
+}
+
 void monitorBackendStatus().then(async () => {
-  backendReady = true;
   await loadSession();
+  backendReady = true;
+  if (isPublicExplorePath() && !currentUser) {
+    updateNavigationState();
+    await loadDeferredExploreMedia(content);
+    return;
+  }
   renderRoute();
-  appShell.hidden = false;
 });

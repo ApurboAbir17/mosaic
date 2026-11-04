@@ -187,21 +187,13 @@ function bindRowControls(container, renderToken) {
   return () => window.removeEventListener("resize", handleResize);
 }
 
-export async function renderExplorePage(container) {
+export async function renderExplorePage(container, { deferMedia = false } = {}) {
   container.searchRenderToken = Symbol("route-render");
   container.exploreRenderCleanup?.();
   const renderToken = Symbol("explore-render");
   container.exploreRenderToken = renderToken;
   container.classList.add("explore-shell");
   container.innerHTML = exploreMarkup();
-  await Promise.all([
-    loadFeatured(container, renderToken),
-    ...sections.map((section) => loadSection(section, container, renderToken))
-  ]);
-
-  if (container.exploreRenderToken !== renderToken) {
-    return;
-  }
 
   const cleanupRetry = bindRetryHandlers(container, renderToken);
   const cleanupRows = bindRowControls(container, renderToken);
@@ -209,4 +201,22 @@ export async function renderExplorePage(container) {
     cleanupRetry();
     cleanupRows();
   };
+
+  let mediaLoadPromise;
+  container.loadExploreMedia = () => {
+    if (container.exploreRenderToken !== renderToken) return Promise.resolve();
+    if (!mediaLoadPromise) {
+      mediaLoadPromise = Promise.all([
+        loadFeatured(container, renderToken),
+        ...sections.map((section) => loadSection(section, container, renderToken))
+      ]);
+    }
+    return mediaLoadPromise;
+  };
+
+  if (!deferMedia) await container.loadExploreMedia();
+}
+
+export function loadDeferredExploreMedia(container) {
+  return container.loadExploreMedia?.() ?? Promise.resolve();
 }
