@@ -99,6 +99,23 @@
   padding: var(--space-8) 0;
 }
 
+.media-details-personal {
+  align-items: start;
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: minmax(17rem, 0.8fr) minmax(0, 1.2fr);
+}
+
+.media-details-rating,
+.media-details-my-review {
+  min-width: 0;
+}
+
+.media-details-my-review {
+  margin: 0;
+  max-width: none;
+}
+
 .media-details-related .media-row {
   gap: var(--space-4);
   grid-auto-columns: minmax(7.5rem, 10rem);
@@ -213,6 +230,10 @@
 
   .media-details-body {
     padding-top: var(--space-6);
+  }
+
+  .media-details-personal {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .media-details-related .media-row {
