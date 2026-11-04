@@ -165,6 +165,7 @@ export async function renderReviewsPage(container) {
     const editor = createReviewEditor({
       media: item.media,
       review: item,
+      startInEditMode: true,
       onSaved: (saved) => {
         items = items.map((entry) => (entry.id === saved.id ? saved : entry));
         paint();
@@ -174,14 +175,10 @@ export async function renderReviewsPage(container) {
         total = Math.max(0, total - 1);
         refreshCount();
         paint();
-      }
+      },
+      onCancel: paint
     });
-    const cancel = document.createElement("button");
-    cancel.className = "button button-ghost";
-    cancel.type = "button";
-    cancel.textContent = "Cancel";
-    cancel.addEventListener("click", paint);
-    holder.append(editor.element, cancel);
+    holder.append(editor.element);
     row.replaceWith(holder);
     message.textContent = "";
   }

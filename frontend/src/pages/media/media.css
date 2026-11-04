@@ -100,7 +100,7 @@
 }
 
 .media-details-personal {
-  align-items: start;
+  align-items: stretch;
   display: grid;
   gap: var(--space-5);
   grid-template-columns: minmax(17rem, 0.8fr) minmax(0, 1.2fr);
@@ -109,6 +109,21 @@
 .media-details-rating,
 .media-details-my-review {
   min-width: 0;
+}
+
+.media-details-rating .rating-panel,
+.media-details-my-review .review-editor {
+  height: 100%;
+}
+
+.media-details-my-review .review-editor {
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.media-details-my-review .review-body {
+  height: 7rem;
+  min-height: 7rem;
 }
 
 .media-details-my-review {

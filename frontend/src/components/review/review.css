@@ -13,11 +13,6 @@
 }
 
 .review-body-row {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.review-body-row {
   align-items: baseline;
   display: flex;
   flex-wrap: wrap;
@@ -114,8 +109,48 @@
   justify-self: start;
 }
 
-.review-delete {
+.review-actions {
   justify-self: start;
+  position: relative;
+}
+
+.review-action-menu {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: var(--space-1);
+  left: 0;
+  min-width: 12rem;
+  padding: var(--space-2);
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  z-index: 10;
+}
+
+.review-action-menu button {
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+}
+
+.review-action-menu button:hover:not(:disabled),
+.review-action-menu button:focus-visible {
+  background: var(--color-surface-raised);
+}
+
+.review-action-menu [data-action="delete"] {
+  color: var(--color-danger);
+}
+
+.review-action-menu button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .review-status {
@@ -237,7 +272,12 @@
   }
 
   .review-submit,
-  .review-delete {
+  .review-actions {
     justify-self: stretch;
+  }
+
+  .review-actions > button,
+  .review-action-menu {
+    width: 100%;
   }
 }
