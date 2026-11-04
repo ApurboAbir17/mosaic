@@ -350,10 +350,11 @@ function renderSettingsRoute(path) {
 }
 
 function renderRoute() {
-  if (!backendReady) return;
+  const path = window.location.pathname;
+  const isAuthPath = path === "/login" || path === "/register";
+  if (!backendReady && !isAuthPath) return;
 
   closeProfileDropdown();
-  const path = window.location.pathname;
   const params = new URLSearchParams(window.location.search);
   content.mediaDetailsRenderToken = Symbol("route-change");
   updateNavigationState();
@@ -593,6 +594,11 @@ window.addEventListener("mosaic:theme-changed", updateThemeToggle);
 if (!window.matchMedia("(max-width: 800px)").matches) {
   setSidebarCollapsed(true);
 }
+
+// Authentication forms are static UI and should remain available while the
+// health monitor is waking the backend. Their submit requests also reach the
+// backend, allowing the user to start signing in as soon as it is available.
+renderRoute();
 
 const isPublicExplorePath = () => window.location.pathname === "/" || window.location.pathname === "/explore";
 if (isPublicExplorePath()) {
