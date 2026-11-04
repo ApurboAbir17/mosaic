@@ -106,12 +106,7 @@
 }
 
 .search-landing-header h1 span {
-  color: var(--color-primary);
-}
-
-:root[data-theme] .search-landing-header h1 span,
-[data-theme] .search-landing-header h1 span {
-  color: var(--color-eyebrow, blue);
+  color: var(--color-eyebrow);
 }
 
 .search-landing-header p {

@@ -29,12 +29,6 @@
   z-index: 1;
 }
 
-:root[data-theme] .explore-intro .eyebrow,
-:root[data-theme] .featured-media-content .eyebrow,
-:root[data-theme] .media-section .eyebrow {
-  color: var(--color-eyebrow, blue);
-}
-
 .explore-intro::after {
   background: var(--color-primary);
   border-radius: 50%;
@@ -127,7 +121,7 @@
 }
 
 .featured-meta .rating {
-  color: var(--color-rating, darkcyan);
+  color: var(--color-rating);
 }
 
 .explore-sections {
@@ -265,13 +259,8 @@
 }
 
 .media-rating {
-  color: var(--color-rating, var(--color-primary));
+  color: var(--color-rating);
   font-weight: 800;
-}
-
-:root[data-theme] .media-rating,
-[data-theme] .media-rating {
-  color: var(--color-rating, darkcyan);
 }
 
 .media-card-skeleton {
