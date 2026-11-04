@@ -398,6 +398,11 @@ function renderRoute() {
     pendingNewAccountGreeting = false;
     renderDashboard(content, { user: currentUser, isNewAccount });
   } else if (path === "/" || path === "/explore") {
+    if (currentUser) {
+      window.history.replaceState({}, "", "/dashboard");
+      renderRoute();
+      return;
+    }
     renderExplorePage(content);
   } else if (path === "/search") {
     const query = params.get("q")?.trim();
