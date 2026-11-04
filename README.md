@@ -95,6 +95,11 @@ branch is for deployment synchronization only. Application changes
 must be made on a `feature/<kebab-case-description>` or
 `fix/<kebab-case-description>` branch and merged into `main` first...
 
+When the frontend opens, it requests `/api/v1/health` through the Pages
+Function. This gives a sleeping Render service an inbound request to start
+from. While the health endpoint is unavailable, the app shows a small
+bottom-right connection message and retries automatically.
+
 ### Backend health endpoint
 
 The Go API is a small M00 foundation service:

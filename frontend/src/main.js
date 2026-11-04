@@ -15,6 +15,7 @@ import { renderRatingsPage } from "./pages/ratings/ratings.js";
 import { renderReviewsPage } from "./pages/reviews/reviews.js";
 import { saveRecentSearch } from "./utils/recent-searches.js";
 import { clearQueryCache } from "./api/query-cache.js";
+import { requestJSON } from "./api/http.js";
 import { settingsService } from "./settings/settings-service.js";
 import { applyTheme, getTheme, initTheme, resolveTheme } from "./theme/theme.js";
 import { renderSettingsOverview } from "./pages/settings/settings.js";
@@ -26,6 +27,8 @@ import { renderAccountSettings } from "./pages/settings/account.js";
 const themeToggle = document.querySelector("#theme-toggle");
 const appShell = document.querySelector(".app-shell");
 const toast = document.querySelector("#toast");
+const backendStatus = document.querySelector("#backend-status");
+const backendStatusMessage = backendStatus?.querySelector("[data-backend-status-message]");
 const sidebar = document.querySelector("#sidebar");
 const sidebarToggle = document.querySelector("#sidebar-toggle");
 const sidebarOverlay = document.querySelector("#sidebar-overlay");
@@ -97,6 +100,56 @@ function showToast() {
 function showMessage(message) {
   toast.textContent = message;
   showToast();
+}
+
+async function restoreSessionAfterBackendWake() {
+  if (currentUser || !sessionLoaded) return;
+  sessionGeneration += 1;
+  sessionLoaded = false;
+  await loadSession();
+  renderRoute();
+}
+
+async function monitorBackendStatus() {
+  if (!backendStatus || !backendStatusMessage) return;
+
+  let retryDelay = 5000;
+  let wasUnavailable = false;
+  const initialStatusDelay = window.setTimeout(() => {
+    wasUnavailable = true;
+    backendStatus.hidden = false;
+  }, 2000);
+
+  while (true) {
+    const controller = new AbortController();
+    const requestTimeout = window.setTimeout(() => controller.abort(), 70000);
+    try {
+      const health = await requestJSON("/health", {
+        cache: "no-store",
+        signal: controller.signal
+      });
+      if (health?.status !== "ok") {
+        throw new Error("The backend health check did not return a ready status.");
+      }
+
+      window.clearTimeout(initialStatusDelay);
+      backendStatus.hidden = true;
+      if (wasUnavailable) await restoreSessionAfterBackendWake();
+      return;
+    } catch (error) {
+      window.clearTimeout(initialStatusDelay);
+      wasUnavailable = true;
+      backendStatus.hidden = false;
+      backendStatusMessage.textContent = error.message.includes("not configured")
+        ? "The backend is not configured for this deployment."
+        : "The backend is unavailable and retrying. Account features may take a moment to load.";
+    } finally {
+      window.clearTimeout(requestTimeout);
+    }
+
+    await new Promise((resolve) => window.setTimeout(resolve, retryDelay));
+    retryDelay = Math.min(retryDelay * 2, 30000);
+  }
 }
 
 function setSidebarCollapsed(isCollapsed) {
@@ -522,3 +575,4 @@ if (!window.matchMedia("(max-width: 800px)").matches) {
 }
 
 loadSession().then(renderRoute);
+void monitorBackendStatus();

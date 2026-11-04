@@ -17,6 +17,7 @@ import (
 func New(cfg config.Config, pool *pgxpool.Pool) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", healthHandler)
+	mux.HandleFunc("/api/v1/health", healthHandler)
 	if pool != nil {
 		authService := auth.NewService(pool)
 		authHandler := auth.NewHandler(authService, cfg)
@@ -59,6 +60,7 @@ func healthHandler(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	writer.Header().Set("Content-Type", "application/json")
+	writer.Header().Set("Cache-Control", "no-store")
 	_ = json.NewEncoder(writer).Encode(map[string]string{"status": "ok"})
 }
 
