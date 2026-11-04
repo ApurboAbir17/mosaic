@@ -3,6 +3,7 @@
 @import url("./base.css");
 @import url("./layout.css");
 @import url("./components.css");
+@import url("../components/tooltip/tooltip.css");
 @import url("./pages.css");
 @import url("../pages/explore/explore.css");
 @import url("../pages/search/search.css");

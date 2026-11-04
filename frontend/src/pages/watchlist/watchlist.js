@@ -38,8 +38,8 @@ function mediaCard(item) {
             ${statuses.map(([status, label]) => `<option value="${status}" ${status === current ? "selected" : ""}>${label}</option>`).join("")}
           </select>
         </label>
-        <button class="button button-ghost watchlist-history" type="button" data-history-id="${item.id}">History</button>
-        <button class="button button-ghost watchlist-remove" type="button" data-remove-id="${item.id}">Remove</button>
+        <button class="button button-ghost watchlist-history" type="button" data-history-id="${item.id}" data-tooltip="View status history">History</button>
+        <button class="button button-ghost watchlist-remove" type="button" data-remove-id="${item.id}" data-tooltip="Remove from watchlist">Remove</button>
       </div>
     </article>`;
 }

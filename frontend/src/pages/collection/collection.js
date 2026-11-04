@@ -29,10 +29,11 @@ function mediaCard(item, favoritePage) {
       <div class="collection-card-actions">
         <button class="icon-button collection-favorite ${item.is_favorite ? "is-favorite" : ""}" type="button"
           data-favorite-id="${item.id}" aria-pressed="${item.is_favorite}"
-          aria-label="${item.is_favorite ? "Remove" : "Add"} ${title} ${favoritePage ? "from" : "to"} favorites">
+          aria-label="${item.is_favorite ? "Remove" : "Add"} ${title} ${favoritePage ? "from" : "to"} favorites"
+          data-tooltip="${item.is_favorite ? `Remove ${title} from favorites` : `Add ${title} to favorites`}">
           ${item.is_favorite ? "♥" : "♡"}
         </button>
-        ${favoritePage ? "" : `<button class="button button-ghost collection-remove" type="button" data-remove-id="${item.id}">Remove</button>`}
+        ${favoritePage ? "" : `<button class="button button-ghost collection-remove" type="button" data-remove-id="${item.id}" data-tooltip="Remove from collection">Remove</button>`}
       </div>
     </article>`;
 }

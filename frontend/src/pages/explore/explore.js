@@ -42,9 +42,9 @@ function exploreMarkup() {
               <span class="section-status" id="${id}-status">Loading</span>
             </div>
             <div class="media-row-shell">
-              <button class="row-control" type="button" data-row-control="previous" data-row="${id}" aria-label="Show previous ${title} titles">‹</button>
+              <button class="row-control" type="button" data-row-control="previous" data-row="${id}" aria-label="Show previous ${title} titles" data-tooltip="Show previous ${title} titles">‹</button>
               <div class="media-row" id="${id}-row">${loadingCards()}</div>
-              <button class="row-control" type="button" data-row-control="next" data-row="${id}" aria-label="Show more ${title} titles">›</button>
+              <button class="row-control" type="button" data-row-control="next" data-row="${id}" aria-label="Show more ${title} titles" data-tooltip="Show more ${title} titles">›</button>
             </div>
           </section>
         `).join("")}

@@ -47,8 +47,8 @@ export function createRatingControl({ media, rating = null, itemId = null, tmdbR
       <input id="personal-rating-input" class="rating-input" type="number" min="1" max="10" step="0.1" inputmode="decimal" aria-label="Your rating from 1.0 to 10.0 in tenths" data-rating-input>
       <span class="rating-stepper-scale">/ 10</span>
     </div>
-    <button class="button button-primary rating-save" type="button" data-rating-save>Save rating</button>
-    <button class="rating-clear" type="button" data-rating-clear hidden>Remove rating</button>
+    <button class="button button-primary rating-save" type="button" data-rating-save data-tooltip="Save rating">Save rating</button>
+    <button class="rating-clear" type="button" data-rating-clear hidden data-tooltip="Remove rating">Remove rating</button>
     <p class="rating-status" role="status" aria-live="polite" data-rating-status></p>
   `;
 
@@ -72,6 +72,7 @@ export function createRatingControl({ media, rating = null, itemId = null, tmdbR
     input.disabled = busy;
     saveButton.disabled = busy || !input.validity.valid || (confirmed !== null && confirmed === draft);
     saveButton.textContent = confirmed !== null && confirmed !== draft ? "Update rating" : "Save rating";
+    saveButton.setAttribute("data-tooltip", saveButton.textContent);
     clearButton.hidden = confirmed === null;
     clearButton.disabled = busy;
     element.setAttribute("aria-busy", String(busy));

@@ -72,11 +72,11 @@ function detailsMarkup(media, currentUser) {
               <div class="media-details-meta"><span>${formatDate(media.releaseDate)}</span><span>${formatRuntime(media)}</span><span class="rating">${rating}</span></div>
               <div class="media-details-genres">${media.genres.map((genre) => `<span class="badge">${escapeHtml(genre)}</span>`).join("")}</div>
               <div class="media-details-collection-action" data-collection-action>
-                ${currentUser
-                  ? `<button class="button button-primary" type="button" data-add-collection>Add to Collection</button>
-                     <button class="button button-ghost" type="button" data-add-favorite>Add to Favorites</button>
-                     <button class="button button-ghost" type="button" data-toggle-watchlist aria-pressed="false">Add to Watchlist</button>
-                     <span class="muted" data-collection-status></span>`
+                 ${currentUser
+                   ? `<button class="button button-primary" type="button" data-add-collection data-tooltip="Add to Collection">Add to Collection</button>
+                      <button class="button button-ghost" type="button" data-add-favorite data-tooltip="Add to Favorites">Add to Favorites</button>
+                      <button class="button button-ghost" type="button" data-toggle-watchlist aria-pressed="false" data-tooltip="Add to Watchlist">Add to Watchlist</button>
+                      <span class="muted" data-collection-status></span>`
                   : `<a class="button button-primary" href="/login?redirect=${encodeURIComponent(window.location.pathname)}">Sign in to save this title</a>`}
               </div>
             </div>
@@ -172,6 +172,7 @@ export async function renderMediaDetailsPage(container, route, currentUser = nul
     const applyWatchlistState = (onWatchlist) => {
       watchlistButton.textContent = onWatchlist ? "Remove from Watchlist" : "Add to Watchlist";
       watchlistButton.setAttribute("aria-pressed", String(onWatchlist));
+      watchlistButton.setAttribute("data-tooltip", watchlistButton.textContent);
     };
     const applyItemState = (nextItem) => {
       item = nextItem;
@@ -184,9 +185,11 @@ export async function renderMediaDetailsPage(container, route, currentUser = nul
       addButton.dataset.inCollection = String(inCollection);
       addButton.textContent = inCollection ? "Remove from Collection" : "Add to Collection";
       addButton.setAttribute("aria-pressed", String(inCollection));
+      addButton.setAttribute("data-tooltip", addButton.textContent);
       favoriteButton.dataset.collectionId = collectionId;
       favoriteButton.dataset.favorite = String(isFavorite);
       favoriteButton.textContent = isFavorite ? "Remove from Favorites" : "Add to Favorites";
+      favoriteButton.setAttribute("data-tooltip", favoriteButton.textContent);
       watchlistButton.dataset.collectionId = collectionId;
       watchlistButton.dataset.onWatchlist = String(onWatchlist);
       applyWatchlistState(onWatchlist);
