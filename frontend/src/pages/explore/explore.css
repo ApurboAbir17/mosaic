@@ -32,7 +32,7 @@
 :root[data-theme] .explore-intro .eyebrow,
 :root[data-theme] .featured-media-content .eyebrow,
 :root[data-theme] .media-section .eyebrow {
-  color: blue;
+  color: var(--color-eyebrow, blue);
 }
 
 .explore-intro::after {
@@ -127,7 +127,7 @@
 }
 
 .featured-meta .rating {
-  color: darkcyan;
+  color: var(--color-rating, darkcyan);
 }
 
 .explore-sections {
@@ -265,8 +265,13 @@
 }
 
 .media-rating {
-  color: var(--color-primary);
+  color: var(--color-rating, var(--color-primary));
   font-weight: 800;
+}
+
+:root[data-theme] .media-rating,
+[data-theme] .media-rating {
+  color: var(--color-rating, darkcyan);
 }
 
 .media-card-skeleton {

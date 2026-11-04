@@ -109,6 +109,11 @@
   color: var(--color-primary);
 }
 
+:root[data-theme] .search-landing-header h1 span,
+[data-theme] .search-landing-header h1 span {
+  color: var(--color-eyebrow, blue);
+}
+
 .search-landing-header p {
   color: var(--color-muted);
   font-size: 1.05rem;

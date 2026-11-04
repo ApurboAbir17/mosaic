@@ -59,12 +59,12 @@
   justify-content: center;
 }
 
-.card-meta, .rating {
-  color: var(--color-muted);
+.card-meta, .rating, .media-rating {
   font-size: 0.8rem;
 }
 
 .card-meta {
+  color: var(--color-muted);
   display: flex;
   gap: var(--space-3);
   margin-bottom: var(--space-2);
@@ -79,9 +79,17 @@
   margin-top: var(--space-4);
 }
 
-.rating {
-  color: var(--color-primary);
+.rating,
+.media-rating {
+  color: var(--color-rating, var(--color-primary));
   font-weight: 800;
+}
+
+:root[data-theme] .rating,
+:root[data-theme] .media-rating,
+[data-theme] .rating,
+[data-theme] .media-rating {
+  color: var(--color-rating, darkcyan);
 }
 
 .badge {
