@@ -132,12 +132,13 @@ Render service, then clear the old `mosaic_session` cookie before testing
 login, registration, logout, and page refresh.
 
 The frontend sends a same-origin `GET /api/v1/health` request when it starts.
-The Pages Function forwards this request to the Go service, waking a Render
-free web service after it has spun down. The frontend displays a bottom-right
-status message while health checks fail, retries with increasing delays, and
-restores the session after the backend becomes healthy. Render documents that
-free web services spin down after 15 minutes without inbound traffic and take
-about one minute to start after the next request.
+The Pages Function maps this readiness probe to the Render service's canonical
+`GET /health` route (all other `/api/*` requests keep their existing paths),
+waking a Render free web service after it has spun down. The frontend displays
+a bottom-right status message while health checks fail, retries with increasing
+delays, and restores the session after the backend becomes healthy. Render
+documents that free web services spin down after 15 minutes without inbound
+traffic and take about one minute to start after the next request.
 
 The official platform pages should be checked before deployment because free
 limits and policies change:

@@ -33,7 +33,12 @@ export async function onRequest({ request, env, params }) {
     );
   }
 
-  targetURL.pathname = `/api/${pathSegments.map(encodeURIComponent).join("/")}`;
+  const isVersionedHealthProbe = pathSegments.length === 2
+    && pathSegments[0] === "v1"
+    && pathSegments[1] === "health";
+  targetURL.pathname = isVersionedHealthProbe
+    ? "/health"
+    : `/api/${pathSegments.map(encodeURIComponent).join("/")}`;
   targetURL.search = incomingURL.search;
 
   return fetch(new Request(targetURL, request));
