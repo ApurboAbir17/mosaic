@@ -19,10 +19,6 @@ input {
   overflow: hidden;
 }
 
-.app-shell[hidden] {
-  display: none;
-}
-
 .app-shell.sidebar-is-collapsed {
   grid-template-columns: 4.5rem minmax(0, 1fr);
 }
