@@ -50,6 +50,7 @@ let currentProfile = null;
 let sessionLoaded = false;
 let sessionGeneration = 0;
 let pendingNewAccountGreeting = false;
+let backendReady = false;
 
 function updateThemeToggle() {
   const resolved = resolveTheme(getTheme());
@@ -102,21 +103,11 @@ function showMessage(message) {
   showToast();
 }
 
-async function restoreSessionAfterBackendWake() {
-  if (currentUser || !sessionLoaded) return;
-  sessionGeneration += 1;
-  sessionLoaded = false;
-  await loadSession();
-  renderRoute();
-}
-
 async function monitorBackendStatus() {
   if (!backendStatus || !backendStatusMessage) return;
 
   let retryDelay = 5000;
-  let wasUnavailable = false;
   const initialStatusDelay = window.setTimeout(() => {
-    wasUnavailable = true;
     backendStatus.hidden = false;
   }, 2000);
 
@@ -134,15 +125,13 @@ async function monitorBackendStatus() {
 
       window.clearTimeout(initialStatusDelay);
       backendStatus.hidden = true;
-      if (wasUnavailable) await restoreSessionAfterBackendWake();
       return;
     } catch (error) {
       window.clearTimeout(initialStatusDelay);
-      wasUnavailable = true;
       backendStatus.hidden = false;
       backendStatusMessage.textContent = error.message.includes("not configured")
         ? "The backend is not configured for this deployment."
-        : "The backend is unavailable and retrying. Account features may take a moment to load.";
+        : "The backend is unavailable and retrying. Media will load when it is ready.";
     } finally {
       window.clearTimeout(requestTimeout);
     }
@@ -337,6 +326,8 @@ function renderSettingsRoute(path) {
 }
 
 function renderRoute() {
+  if (!backendReady) return;
+
   closeProfileDropdown();
   const path = window.location.pathname;
   const params = new URLSearchParams(window.location.search);
@@ -407,6 +398,11 @@ function renderRoute() {
     pendingNewAccountGreeting = false;
     renderDashboard(content, { user: currentUser, isNewAccount });
   } else if (path === "/" || path === "/explore") {
+    if (currentUser) {
+      window.history.replaceState({}, "", "/dashboard");
+      renderRoute();
+      return;
+    }
     renderExplorePage(content);
   } else if (path === "/search") {
     const query = params.get("q")?.trim();
@@ -574,5 +570,9 @@ if (!window.matchMedia("(max-width: 800px)").matches) {
   setSidebarCollapsed(true);
 }
 
-loadSession().then(renderRoute);
-void monitorBackendStatus();
+void monitorBackendStatus().then(async () => {
+  backendReady = true;
+  await loadSession();
+  renderRoute();
+  appShell.hidden = false;
+});
