@@ -117,10 +117,6 @@
   margin: var(--space-6) auto 0;
 }
 
-.media-details-rating {
-  margin-top: var(--space-5);
-}
-
 @media (max-width: 900px) {
   .ratings-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }

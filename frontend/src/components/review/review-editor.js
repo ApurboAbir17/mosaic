@@ -2,18 +2,14 @@ import { reviewService } from "../../reviews/review-service.js";
 
 const MIN_BODY = 20;
 const MAX_BODY = 5000;
-const MAX_TITLE = 120;
 
 /**
- * Review editor.
- *
- * Layout follows the project's review reference: optional title, the review body
- * with a live counter, visibility, spoiler flag and the submit action. New
- * reviews use the upsert endpoint; editing an existing review uses PATCH so the
- * media identity never has to be re-supplied.
+ * Shared review editor for media details and the signed-in Reviews page.
+ * Existing legacy titles are displayed read-only and included in updates so
+ * editing a review never clears data from before the title field was removed.
  *
  * @param {object} options
- * @param {object} options.media   Media identity payload for a new review.
+ * @param {object} options.media Media identity payload for a new review.
  * @param {object|null} options.review Existing review, if editing.
  * @param {Function} [options.onSaved]
  * @param {Function} [options.onDeleted]
@@ -31,17 +27,22 @@ export function createReviewEditor({ media, review = null, onSaved, onDeleted } 
       <p class="eyebrow">Your review</p>
       <h3 data-heading>${current ? "Edit your review" : "Write a review"}</h3>
     </div>
-    <label class="review-field">
-      <span class="field-label">Review title (optional)</span>
-      <input class="input review-title" type="text" name="title" maxlength="${MAX_TITLE}"
-        placeholder="Give your review a title" data-title>
-    </label>
-    <div class="review-body-row">
-      <span class="field-label" id="review-body-label">Your review</span>
-      <span class="review-counter" data-counter>0/${MAX_BODY}</span>
+    <p class="review-editor-saved" data-saved-state hidden></p>
+    <div class="review-legacy-title" data-legacy-title hidden>
+      <span class="field-label">Saved title (preserved)</span>
+      <p data-legacy-title-value></p>
     </div>
-    <textarea class="input review-body" rows="6" placeholder="Write your thoughts about this title..."
-      aria-labelledby="review-body-label" data-body></textarea>
+    <div class="review-body-row">
+      <label class="field-label" id="review-body-label" for="review-body-input">
+        Your review <span class="review-length-guidance" data-length-guidance>20–5,000 characters</span>
+      </label>
+      <span class="review-counter" id="review-counter" data-counter>0/${MAX_BODY}</span>
+    </div>
+    <textarea id="review-body-input" class="input review-body" rows="6"
+      placeholder="Write your thoughts about this title..."
+      aria-describedby="review-length-guidance review-counter review-validation"
+      data-body></textarea>
+    <p class="review-validation" id="review-validation" data-validation aria-live="polite" hidden></p>
     <fieldset class="review-visibility">
       <legend class="field-label">Visibility</legend>
       <label class="review-choice">
@@ -62,15 +63,18 @@ export function createReviewEditor({ media, review = null, onSaved, onDeleted } 
     <p class="review-status" role="status" aria-live="polite" data-status></p>
   `;
 
-  const titleInput = element.querySelector("[data-title]");
   const bodyInput = element.querySelector("[data-body]");
   const counter = element.querySelector("[data-counter]");
+  const validation = element.querySelector("[data-validation]");
   const visibilityInputs = [...element.querySelectorAll("[data-visibility]")];
   const spoilerInput = element.querySelector("[data-spoilers]");
   const submitButton = element.querySelector("[data-submit]");
   const deleteButton = element.querySelector("[data-delete]");
   const status = element.querySelector("[data-status]");
   const heading = element.querySelector("[data-heading]");
+  const savedState = element.querySelector("[data-saved-state]");
+  const legacyTitle = element.querySelector("[data-legacy-title]");
+  const legacyTitleValue = element.querySelector("[data-legacy-title-value]");
 
   function setStatus(message, tone = "") {
     status.textContent = message;
@@ -83,7 +87,6 @@ export function createReviewEditor({ media, review = null, onSaved, onDeleted } 
 
   function formValues() {
     return {
-      title: titleInput.value.trim(),
       body: bodyInput.value.trim(),
       visibility: selectedVisibility(),
       contains_spoilers: spoilerInput.checked
@@ -91,24 +94,35 @@ export function createReviewEditor({ media, review = null, onSaved, onDeleted } 
   }
 
   function isDirty() {
-    if (!current) {
-      const values = formValues();
-      return values.body !== "" || values.title !== "" ||
-        values.visibility !== "private" || values.contains_spoilers;
-    }
     const values = formValues();
-    return values.title !== (current.title ?? "") ||
-      values.body !== current.body ||
+    if (!current) {
+      return values.body !== "" || values.visibility !== "private" || values.contains_spoilers;
+    }
+    return values.body !== current.body ||
       values.visibility !== current.visibility ||
       values.contains_spoilers !== Boolean(current.contains_spoilers);
   }
 
+  function lengthError(length) {
+    if (length > MAX_BODY) return `Your review is too long. Remove ${length - MAX_BODY} characters.`;
+    if (bodyInput.value.length > 0 && length < MIN_BODY) {
+      return length === 0
+        ? `Enter at least ${MIN_BODY} non-space characters.`
+        : `Add ${MIN_BODY - length} more characters to meet the minimum.`;
+    }
+    return "";
+  }
+
   function paint() {
-    const length = bodyInput.value.length;
+    const length = bodyInput.value.trim().length;
+    const valid = length >= MIN_BODY && length <= MAX_BODY;
+    const validationMessage = lengthError(length);
     counter.textContent = `${length}/${MAX_BODY}`;
-    counter.classList.toggle("is-danger", length > MAX_BODY);
-    const bodyLength = bodyInput.value.trim().length;
-    const valid = bodyLength >= MIN_BODY && bodyLength <= MAX_BODY;
+    counter.classList.toggle("is-danger", !valid && (length > MAX_BODY || bodyInput.value.length > 0));
+    validation.textContent = validationMessage;
+    validation.hidden = !validationMessage;
+    validation.classList.toggle("is-error", Boolean(validationMessage));
+    submitButton.textContent = current ? "Save changes" : "Publish review";
     submitButton.disabled = busy || !valid || !isDirty();
     deleteButton.hidden = !current;
     deleteButton.disabled = busy;
@@ -116,21 +130,30 @@ export function createReviewEditor({ media, review = null, onSaved, onDeleted } 
   }
 
   function load(review) {
-    current = review;
-    if (!review) {
-      element.reset();
+    current = review ? { ...review } : null;
+    element.reset();
+    if (!current) {
+      heading.textContent = "Write a review";
+      element.setAttribute("aria-label", "Write a review");
+      savedState.hidden = true;
+      legacyTitle.hidden = true;
+      legacyTitleValue.textContent = "";
       setStatus("");
       paint();
       return;
     }
-    titleInput.value = review.title ?? "";
-    bodyInput.value = review.body ?? "";
+
+    bodyInput.value = current.body ?? "";
     visibilityInputs.forEach((input) => {
-      input.checked = input.value === review.visibility;
+      input.checked = input.value === current.visibility;
     });
-    spoilerInput.checked = Boolean(review.contains_spoilers);
+    spoilerInput.checked = Boolean(current.contains_spoilers);
     heading.textContent = "Edit your review";
     element.setAttribute("aria-label", "Edit your review");
+    savedState.textContent = `Saved as ${current.visibility === "public" ? "Public" : "Private"}${current.contains_spoilers ? " · Contains spoilers" : ""}.`;
+    savedState.hidden = false;
+    legacyTitleValue.textContent = current.title ?? "";
+    legacyTitle.hidden = !current.title;
     setStatus("");
     paint();
   }
@@ -140,7 +163,6 @@ export function createReviewEditor({ media, review = null, onSaved, onDeleted } 
     paint();
   }
 
-  titleInput.addEventListener("input", handleInput);
   bodyInput.addEventListener("input", handleInput);
   spoilerInput.addEventListener("change", handleInput);
   visibilityInputs.forEach((input) => input.addEventListener("change", handleInput));
@@ -150,24 +172,22 @@ export function createReviewEditor({ media, review = null, onSaved, onDeleted } 
     if (busy) return;
 
     const values = formValues();
-    if (values.body.length < MIN_BODY) {
-      setStatus(`Your review must be at least ${MIN_BODY} characters.`, "error");
+    const lengthErrorMessage = values.body.length < MIN_BODY
+      ? `Your review must contain at least ${MIN_BODY} non-space characters.`
+      : values.body.length > MAX_BODY
+        ? `Your review must contain no more than ${MAX_BODY} characters.`
+        : "";
+    if (lengthErrorMessage) {
+      validation.textContent = lengthErrorMessage;
+      validation.hidden = false;
+      validation.classList.add("is-error");
       bodyInput.focus();
-      return;
-    }
-    if (values.body.length > MAX_BODY) {
-      setStatus(`Your review must be at most ${MAX_BODY} characters.`, "error");
-      bodyInput.focus();
-      return;
-    }
-    if (values.title.length > MAX_TITLE) {
-      setStatus(`Your review title must be at most ${MAX_TITLE} characters.`, "error");
-      titleInput.focus();
       return;
     }
 
     const payload = {
-      title: values.title === "" ? null : values.title,
+      // Preserve titles written before the title field was removed.
+      title: current?.title ?? null,
       body: values.body,
       visibility: values.visibility,
       contains_spoilers: values.contains_spoilers
@@ -183,6 +203,10 @@ export function createReviewEditor({ media, review = null, onSaved, onDeleted } 
       current = saved;
       heading.textContent = "Edit your review";
       element.setAttribute("aria-label", "Edit your review");
+      savedState.textContent = `Saved as ${saved.visibility === "public" ? "Public" : "Private"}${saved.contains_spoilers ? " · Contains spoilers" : ""}.`;
+      savedState.hidden = false;
+      legacyTitleValue.textContent = saved.title ?? "";
+      legacyTitle.hidden = !saved.title;
       setStatus(
         saved.visibility === "public"
           ? "Review published. It is now visible to everyone."
@@ -208,10 +232,7 @@ export function createReviewEditor({ media, review = null, onSaved, onDeleted } 
     paint();
     try {
       await reviewService.remove(current.id);
-      current = null;
-      element.reset();
-      heading.textContent = "Write a review";
-      element.setAttribute("aria-label", "Write a review");
+      load(null);
       setStatus("Review deleted.", "success");
       onDeleted?.();
     } catch (error) {

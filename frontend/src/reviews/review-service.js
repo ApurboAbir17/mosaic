@@ -25,12 +25,12 @@ export const reviewService = {
   get: (id) => cachedQuery(`/reviews/${id}`, () => requestJSON(`/reviews/${id}`)),
   update: async (id, patch) => {
     const result = await requestJSON(`/reviews/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
-    invalidateCached("/reviews", "/dashboard");
+    invalidateCached("/reviews", "/media/", "/dashboard");
     return result;
   },
   remove: async (id) => {
     const result = await requestJSON(`/reviews/${id}`, { method: "DELETE" });
-    invalidateCached("/reviews", "/dashboard");
+    invalidateCached("/reviews", "/media/", "/dashboard");
     return result;
   },
   listPublic: (mediaType, providerMediaId, { limit = 20, offset = 0 } = {}) =>

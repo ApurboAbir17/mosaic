@@ -84,7 +84,11 @@ function detailsMarkup(media, currentUser) {
         </div>
       </div>
       <div class="media-details-body">
-        ${currentUser ? `<div class="media-details-rating" data-rating-panel></div>` : ""}
+        ${currentUser ? `
+          <section class="media-details-personal" aria-label="Your rating and review">
+            <div class="media-details-rating" data-rating-panel></div>
+            <div class="media-details-my-review" data-my-review></div>
+          </section>` : ""}
         <section class="media-details-section" aria-labelledby="overview-title">
           <p class="eyebrow">The story</p>
           <h2 id="overview-title">Overview</h2>
@@ -106,11 +110,9 @@ function detailsMarkup(media, currentUser) {
             ${media.providers.length ? `<div class="provider-list">${media.providers.map((provider) => `<span class="provider"><img src="${provider.logoUrl}" alt="">${escapeHtml(provider.name)}</span>`).join("")}</div>` : ""}
           </section>` : ""}
         ${media.related.length ? `<section class="media-details-section media-details-related" aria-labelledby="related-title"><p class="eyebrow">Keep exploring</p><h2 id="related-title">More like this</h2><div class="media-row">${mediaRow(media.related)}</div></section>` : ""}
-        <section class="media-details-section media-details-reviews" aria-labelledby="reviews-title">
-          <p class="eyebrow">Reviews</p>
-          <h2 id="reviews-title">Reviews</h2>
-          ${currentUser ? `<div class="media-details-my-review" data-my-review></div>` : ""}
-          <h3 class="media-details-reviews-heading">Community reviews</h3>
+        <section class="media-details-section media-details-reviews" aria-labelledby="community-reviews-title">
+          <p class="eyebrow">Community</p>
+          <h2 id="community-reviews-title">Community reviews</h2>
           <div class="review-list" data-public-reviews></div>
           <p class="profile-form-message" data-reviews-status role="status" aria-live="polite"></p>
           <button class="button button-ghost review-load-more" type="button" data-reviews-more hidden>Load more</button>
