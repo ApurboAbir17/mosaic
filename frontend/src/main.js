@@ -443,11 +443,6 @@ function renderRoute() {
     pendingNewAccountGreeting = false;
     renderDashboard(content, { user: currentUser, isNewAccount });
   } else if (path === "/" || path === "/explore") {
-    if (currentUser) {
-      window.history.replaceState({}, "", "/dashboard");
-      renderRoute();
-      return;
-    }
     renderExplorePage(content);
   } else if (path === "/search") {
     const query = params.get("q")?.trim();
@@ -621,6 +616,7 @@ if (!window.matchMedia("(max-width: 800px)").matches) {
 renderRoute();
 
 const isPublicExplorePath = () => window.location.pathname === "/" || window.location.pathname === "/explore";
+const initialPath = window.location.pathname;
 if (isPublicExplorePath()) {
   void renderExplorePage(content, { deferMedia: true });
 }
@@ -628,6 +624,9 @@ if (isPublicExplorePath()) {
 void monitorBackendStatus().then(async () => {
   await loadSession();
   backendReady = true;
+  if (initialPath === "/" && window.location.pathname === "/" && currentUser) {
+    window.history.replaceState({}, "", "/dashboard");
+  }
   if (isPublicExplorePath() && !currentUser) {
     updateNavigationState();
     await loadDeferredExploreMedia(content);
