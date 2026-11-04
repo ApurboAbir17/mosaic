@@ -52,6 +52,26 @@ let sessionGeneration = 0;
 let pendingNewAccountGreeting = false;
 let backendReady = false;
 
+const backendHealthURL = (() => {
+  // Probe Render directly from the browser so health checks use the same
+  // request path that wakes the service when its Pages proxy is rate-limited.
+  const apiBaseURL = import.meta.env.VITE_API_BASE_URL?.trim();
+  if (!apiBaseURL) return "/api/v1/health";
+
+  try {
+    const url = new URL(apiBaseURL);
+    if (url.protocol !== "https:" && url.protocol !== "http:") {
+      return "/api/v1/health";
+    }
+    url.pathname = "/health";
+    url.search = "";
+    url.hash = "";
+    return url.href;
+  } catch {
+    return "/api/v1/health";
+  }
+})();
+
 function updateThemeToggle() {
   const resolved = resolveTheme(getTheme());
   const isLight = resolved === "light";
@@ -115,7 +135,7 @@ async function monitorBackendStatus() {
     const controller = new AbortController();
     const requestTimeout = window.setTimeout(() => controller.abort(), 70000);
     try {
-      const response = await fetch("/api/v1/health", {
+      const response = await fetch(backendHealthURL, {
         credentials: "omit",
         cache: "no-store",
         headers: { Accept: "application/json" },
