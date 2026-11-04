@@ -9,18 +9,18 @@ import (
 	"strings"
 )
 
-// Rating stores half-point units so validation and equality stay exact:
-// 2 == 1.0, 17 == 8.5, 20 == 10.0. The API and the database use the decimal
+// Rating stores tenths so validation and equality stay exact:
+// 10 == 1.0, 83 == 8.3, 100 == 10.0. The API and database use the decimal
 // value, which is converted at this boundary.
 type Rating int
 
 const (
-	MinRating Rating = 2
-	MaxRating Rating = 20
+	MinRating Rating = 10
+	MaxRating Rating = 100
 )
 
-// ParseRating validates the personal-rating scale: 1.0–10.0 in half-point
-// steps. Zero, negatives, values above 10, thirds, strings and NaN are all
+// ParseRating validates the personal-rating scale: 1.0–10.0 in tenth-point
+// steps. Zero, negatives, values above 10, finer precision, strings and NaN are all
 // rejected. Using json.Number keeps the raw text so float64 rounding cannot
 // turn an invalid score into a valid one.
 func ParseRating(value json.Number) (Rating, error) {
@@ -32,10 +32,10 @@ func ParseRating(value json.Number) (Rating, error) {
 	if err != nil || math.IsNaN(parsed) || math.IsInf(parsed, 0) {
 		return 0, fmt.Errorf("%w: rating must be a number", ErrInvalidInput)
 	}
-	units := parsed * 2
+	units := parsed * 10
 	rounded := math.Round(units)
 	if math.Abs(units-rounded) > 1e-9 {
-		return 0, fmt.Errorf("%w: rating must use whole or half points", ErrInvalidInput)
+		return 0, fmt.Errorf("%w: rating must use at most one decimal place", ErrInvalidInput)
 	}
 	rating := Rating(rounded)
 	if !rating.Valid() {
@@ -47,7 +47,7 @@ func ParseRating(value json.Number) (Rating, error) {
 func (r Rating) Valid() bool { return r >= MinRating && r <= MaxRating }
 
 // Float returns the decimal score stored in Postgres.
-func (r Rating) Float() float64 { return float64(r) / 2 }
+func (r Rating) Float() float64 { return float64(r) / 10 }
 
 // SetRating writes a rating to an existing user-media relationship. It never
 // creates a relationship: use RateMedia when the title may be new.
@@ -56,7 +56,7 @@ func (r Rating) Float() float64 { return float64(r) / 2 }
 // the value actually changes.
 func (s *Service) SetRating(ctx context.Context, userID string, itemID int64, rating Rating) (Item, error) {
 	if !rating.Valid() {
-		return Item{}, fmt.Errorf("%w: rating must be between 1.0 and 10.0 in half-point steps", ErrInvalidInput)
+		return Item{}, fmt.Errorf("%w: rating must be between 1.0 and 10.0 in tenth-point steps", ErrInvalidInput)
 	}
 	value := rating.Float()
 	result, err := s.db.Exec(ctx, `UPDATE user_media
@@ -107,7 +107,7 @@ func (s *Service) RemoveRating(ctx context.Context, userID string, itemID int64)
 // it into another list.
 func (s *Service) RateMedia(ctx context.Context, userID string, input MediaInput, rating Rating) (Item, bool, error) {
 	if !rating.Valid() {
-		return Item{}, false, fmt.Errorf("%w: rating must be between 1.0 and 10.0 in half-point steps", ErrInvalidInput)
+		return Item{}, false, fmt.Errorf("%w: rating must be between 1.0 and 10.0 in tenth-point steps", ErrInvalidInput)
 	}
 	input, err := normalizeMedia(input)
 	if err != nil {
