@@ -171,33 +171,52 @@ export async function renderMediaDetailsPage(container, route, currentUser = nul
       watchlistButton.textContent = onWatchlist ? "Remove from Watchlist" : "Add to Watchlist";
       watchlistButton.setAttribute("aria-pressed", String(onWatchlist));
     };
+    const applyItemState = (nextItem) => {
+      item = nextItem;
+      const collectionId = item?.id == null ? "" : String(item.id);
+      const inCollection = Boolean(item?.in_collection);
+      const isFavorite = Boolean(item?.is_favorite);
+      const onWatchlist = Boolean(item?.status);
+
+      addButton.dataset.collectionId = collectionId;
+      addButton.dataset.inCollection = String(inCollection);
+      addButton.textContent = inCollection ? "Remove from Collection" : "Add to Collection";
+      addButton.setAttribute("aria-pressed", String(inCollection));
+      favoriteButton.dataset.collectionId = collectionId;
+      favoriteButton.dataset.favorite = String(isFavorite);
+      favoriteButton.textContent = isFavorite ? "Remove from Favorites" : "Add to Favorites";
+      watchlistButton.dataset.collectionId = collectionId;
+      watchlistButton.dataset.onWatchlist = String(onWatchlist);
+      applyWatchlistState(onWatchlist);
+    };
     try {
       const result = await collectionService.check(collectionInput(media));
-      item = result.item;
-      if (item) {
-        if (item.in_collection) {
-          addButton.textContent = "In Collection";
-          addButton.disabled = true;
-        }
-        favoriteButton.textContent = item.is_favorite ? "Remove from Favorites" : "Add to Favorites";
-        favoriteButton.dataset.collectionId = item.id;
-        favoriteButton.dataset.favorite = String(item.is_favorite);
-        watchlistButton.dataset.collectionId = item.id;
-        watchlistButton.dataset.onWatchlist = String(Boolean(item.status));
-        applyWatchlistState(Boolean(item.status));
-      }
+      applyItemState(result.item);
     } catch (error) {
       status.textContent = error.message;
     }
     addButton.addEventListener("click", async () => {
       addButton.disabled = true;
       try {
-        const item = await collectionService.add(collectionInput(media));
-        addButton.textContent = "In Collection";
-        favoriteButton.dataset.collectionId = item.id;
-        status.textContent = "Saved to your collection.";
+        if (addButton.dataset.inCollection === "true") {
+          const previousItem = item;
+          await collectionService.remove(addButton.dataset.collectionId);
+          const hasOtherSavedState = Boolean(
+            previousItem?.is_favorite || previousItem?.status || previousItem?.rating != null
+          );
+          applyItemState(hasOtherSavedState ? {
+            ...previousItem,
+            in_collection: false,
+            collected_at: null
+          } : null);
+          status.textContent = "Removed from your collection.";
+        } else {
+          applyItemState(await collectionService.add(collectionInput(media)));
+          status.textContent = "Added to your collection.";
+        }
       } catch (error) {
         status.textContent = error.message;
+      } finally {
         addButton.disabled = false;
       }
     });
@@ -209,9 +228,7 @@ export async function renderMediaDetailsPage(container, route, currentUser = nul
             ? await collectionService.unfavorite(favoriteButton.dataset.collectionId)
             : await collectionService.favorite(favoriteButton.dataset.collectionId))
           : await collectionService.addAsFavorite(collectionInput(media));
-        favoriteButton.dataset.collectionId = item.id;
-        favoriteButton.dataset.favorite = String(item.is_favorite);
-        favoriteButton.textContent = item.is_favorite ? "Remove from Favorites" : "Add to Favorites";
+        applyItemState(item);
         status.textContent = item.is_favorite ? "Added to favorites." : "Removed from favorites.";
       } catch (error) {
         status.textContent = error.message;
@@ -223,13 +240,17 @@ export async function renderMediaDetailsPage(container, route, currentUser = nul
       const onWatchlist = watchlistButton.dataset.onWatchlist === "true";
       watchlistButton.disabled = true;
       try {
-        const item = onWatchlist
+        const updatedItem = onWatchlist
           ? await watchlistService.remove(watchlistButton.dataset.collectionId)
           : await watchlistService.add(collectionInput(media));
-        // Removing returns no body, so the saved state is derived from the request.
-        watchlistButton.dataset.collectionId = item?.id ?? watchlistButton.dataset.collectionId;
-        watchlistButton.dataset.onWatchlist = String(!onWatchlist);
-        applyWatchlistState(!onWatchlist);
+        // Removal returns no body, so derive the other saved fields from the
+        // last known relationship and clear its ID if cleanup may delete it.
+        if (onWatchlist) {
+          const hasOtherSavedState = Boolean(item?.in_collection || item?.is_favorite || item?.rating != null);
+          applyItemState(hasOtherSavedState ? { ...item, status: null, status_changed_at: null } : null);
+        } else {
+          applyItemState(updatedItem);
+        }
         status.textContent = onWatchlist ? "Removed from your watchlist." : "Added to your watchlist.";
       } catch (error) {
         status.textContent = error.message;
