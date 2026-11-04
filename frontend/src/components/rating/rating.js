@@ -1,13 +1,8 @@
 import { ratingService } from "../../ratings/rating-service.js";
 
-const MIN_RATING = 1;
-const MAX_RATING = 10;
-const STEP = 0.5;
 const NEUTRAL_RATING = 5;
 
 const format = (value) => Number(value).toFixed(1);
-
-const clamp = (value) => Math.min(MAX_RATING, Math.max(MIN_RATING, Math.round(value / STEP) * STEP));
 
 /**
  * Personal rating control.
@@ -47,9 +42,9 @@ export function createRatingControl({ media, rating = null, itemId = null, tmdbR
         <dd class="rating-metric-personal" data-rating-readout></dd>
       </div>
     </dl>
-    <label class="rating-entry-label" for="personal-rating-input">Your score <span>(1–10)</span></label>
+    <label class="rating-entry-label" for="personal-rating-input">Your score <span>(1.0–10.0)</span></label>
     <div class="rating-entry">
-      <input id="personal-rating-input" class="rating-input" type="number" min="1" max="10" step="0.5" inputmode="decimal" aria-label="Your rating from 1 to 10 in half-point steps" data-rating-input>
+      <input id="personal-rating-input" class="rating-input" type="number" min="1" max="10" step="0.1" inputmode="decimal" aria-label="Your rating from 1.0 to 10.0 in tenths" data-rating-input>
       <span class="rating-stepper-scale">/ 10</span>
     </div>
     <button class="button button-primary rating-save" type="button" data-rating-save>Save rating</button>
@@ -87,7 +82,7 @@ export function createRatingControl({ media, rating = null, itemId = null, tmdbR
       saveButton.disabled = true;
       return;
     }
-    draft = clamp(Number(input.value));
+    draft = Number(input.value);
     setStatus("");
     saveButton.disabled = busy || (confirmed !== null && confirmed === draft);
   });
@@ -95,11 +90,11 @@ export function createRatingControl({ media, rating = null, itemId = null, tmdbR
   async function save() {
     if (busy) return;
     if (input.value === "" || !input.validity.valid) {
-      setStatus("Enter a score from 1.0 to 10.0.", "error");
+      setStatus("Enter a score from 1.0 to 10.0 using up to one decimal place.", "error");
       input.focus();
       return;
     }
-    draft = clamp(Number(input.value));
+    draft = Number(input.value);
     const previous = confirmed;
     const attempted = draft;
     busy = true;

@@ -6,11 +6,13 @@ import (
 	"testing"
 )
 
-func TestParseRatingAcceptsHalfPoints(t *testing.T) {
+func TestParseRatingAcceptsTenths(t *testing.T) {
 	valid := map[string]float64{
 		"1":    1.0,
 		"1.0":  1.0,
 		"1.5":  1.5,
+		"8.3":  8.3,
+		"8.7":  8.7,
 		"8.5":  8.5,
 		"8.50": 8.5,
 		"10":   10.0,
@@ -28,7 +30,7 @@ func TestParseRatingAcceptsHalfPoints(t *testing.T) {
 }
 
 func TestParseRatingRejectsInvalidScores(t *testing.T) {
-	invalid := []string{"", "0", "0.0", "0.5", "-1", "10.5", "11", "8.3", "8.25", "abc", "NaN", "Inf"}
+	invalid := []string{"", "0", "0.0", "0.5", "-1", "10.1", "10.5", "11", "8.25", "8.31", "abc", "NaN", "Inf"}
 	for _, input := range invalid {
 		if _, err := ParseRating(json.Number(input)); !errors.Is(err, ErrInvalidInput) {
 			t.Fatalf("ParseRating(%q) did not reject invalid input", input)
