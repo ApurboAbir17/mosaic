@@ -1,6 +1,6 @@
 import { reviewService } from "../../reviews/review-service.js";
 
-const MIN_BODY = 20;
+const MIN_BODY = 10;
 const MAX_BODY = 5000;
 
 /**
@@ -11,21 +11,31 @@ const MAX_BODY = 5000;
  * @param {object} options
  * @param {object} options.media Media identity payload for a new review.
  * @param {object|null} options.review Existing review, if editing.
+ * @param {boolean} [options.startInEditMode] Start editing an existing review.
  * @param {Function} [options.onSaved]
  * @param {Function} [options.onDeleted]
+ * @param {Function} [options.onCancel]
  */
-export function createReviewEditor({ media, review = null, onSaved, onDeleted } = {}) {
+export function createReviewEditor({
+  media,
+  review = null,
+  startInEditMode = false,
+  onSaved,
+  onDeleted,
+  onCancel
+} = {}) {
   let current = review ? { ...review } : null;
+  let editing = !current || startInEditMode;
   let busy = false;
 
   const element = document.createElement("form");
   element.className = "review-editor";
   element.noValidate = true;
-  element.setAttribute("aria-label", current ? "Edit your review" : "Write a review");
+  element.setAttribute("aria-label", current ? "Your saved review" : "Write a review");
   element.innerHTML = `
     <div class="review-editor-heading">
       <p class="eyebrow">Your review</p>
-      <h3 data-heading>${current ? "Edit your review" : "Write a review"}</h3>
+      <h3 data-heading>${current ? "Your review" : "Write a review"}</h3>
     </div>
     <p class="review-editor-saved" data-saved-state hidden></p>
     <div class="review-legacy-title" data-legacy-title hidden>
@@ -34,7 +44,7 @@ export function createReviewEditor({ media, review = null, onSaved, onDeleted } 
     </div>
     <div class="review-body-row">
       <label class="field-label" id="review-body-label" for="review-body-input">
-        Your review <span class="review-length-guidance" data-length-guidance>20–5,000 characters</span>
+        Your review <span class="review-length-guidance" data-length-guidance>${MIN_BODY}–${MAX_BODY} characters</span>
       </label>
       <span class="review-counter" id="review-counter" data-counter>0/${MAX_BODY}</span>
     </div>
@@ -59,7 +69,16 @@ export function createReviewEditor({ media, review = null, onSaved, onDeleted } 
       <span>This review contains spoilers</span>
     </label>
     <button class="button button-primary review-submit" type="submit" data-submit>Publish review</button>
-    <button class="button button-ghost review-delete" type="button" data-delete hidden>Delete review</button>
+    <div class="review-actions" data-review-actions hidden>
+      <button class="button button-primary" type="button" data-actions-toggle
+        aria-haspopup="menu" aria-expanded="false">Review actions</button>
+      <div class="review-action-menu" role="menu" data-actions-menu hidden>
+        <button type="button" role="menuitem" data-action="edit">Edit review</button>
+        <button type="button" role="menuitem" data-action="save">Save changes</button>
+        <button type="button" role="menuitem" data-action="cancel">Cancel editing</button>
+        <button type="button" role="menuitem" data-action="delete">Delete review</button>
+      </div>
+    </div>
     <p class="review-status" role="status" aria-live="polite" data-status></p>
   `;
 
@@ -69,7 +88,13 @@ export function createReviewEditor({ media, review = null, onSaved, onDeleted } 
   const visibilityInputs = [...element.querySelectorAll("[data-visibility]")];
   const spoilerInput = element.querySelector("[data-spoilers]");
   const submitButton = element.querySelector("[data-submit]");
-  const deleteButton = element.querySelector("[data-delete]");
+  const actions = element.querySelector("[data-review-actions]");
+  const actionsToggle = element.querySelector("[data-actions-toggle]");
+  const actionsMenu = element.querySelector("[data-actions-menu]");
+  const editAction = element.querySelector('[data-action="edit"]');
+  const saveAction = element.querySelector('[data-action="save"]');
+  const cancelAction = element.querySelector('[data-action="cancel"]');
+  const deleteAction = element.querySelector('[data-action="delete"]');
   const status = element.querySelector("[data-status]");
   const heading = element.querySelector("[data-heading]");
   const savedState = element.querySelector("[data-saved-state]");
@@ -122,15 +147,52 @@ export function createReviewEditor({ media, review = null, onSaved, onDeleted } 
     validation.textContent = validationMessage;
     validation.hidden = !validationMessage;
     validation.classList.toggle("is-error", Boolean(validationMessage));
-    submitButton.textContent = current ? "Save changes" : "Publish review";
+    bodyInput.readOnly = busy || Boolean(current && !editing);
+    visibilityInputs.forEach((input) => {
+      input.disabled = Boolean(current && !editing) || busy;
+    });
+    spoilerInput.disabled = Boolean(current && !editing) || busy;
+    submitButton.hidden = Boolean(current);
     submitButton.disabled = busy || !valid || !isDirty();
-    deleteButton.hidden = !current;
-    deleteButton.disabled = busy;
+    actions.hidden = !current;
+    actionsToggle.disabled = busy;
+    editAction.hidden = editing;
+    saveAction.hidden = !editing;
+    saveAction.disabled = busy || !valid || !isDirty();
+    cancelAction.hidden = !editing;
+    deleteAction.disabled = busy;
     element.setAttribute("aria-busy", String(busy));
   }
 
-  function load(review) {
+  function closeActionsMenu({ restoreFocus = false } = {}) {
+    actionsMenu.hidden = true;
+    actionsToggle.setAttribute("aria-expanded", "false");
+    if (restoreFocus) actionsToggle.focus();
+  }
+
+  function openActionsMenu() {
+    actionsMenu.hidden = false;
+    actionsToggle.setAttribute("aria-expanded", "true");
+    actionsMenu.querySelector('[role="menuitem"]:not([hidden])')?.focus();
+  }
+
+  function moveMenuFocus(event) {
+    const items = [...actionsMenu.querySelectorAll('[role="menuitem"]:not([hidden]):not(:disabled)')];
+    if (!items.length) return;
+    const currentIndex = items.indexOf(document.activeElement);
+    let nextIndex = currentIndex;
+    if (event.key === "ArrowDown") nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % items.length;
+    else if (event.key === "ArrowUp") nextIndex = currentIndex < 0 ? items.length - 1 : (currentIndex - 1 + items.length) % items.length;
+    else if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = items.length - 1;
+    else return;
+    event.preventDefault();
+    items[nextIndex].focus();
+  }
+
+  function load(review, editMode = !review) {
     current = review ? { ...review } : null;
+    editing = !current || editMode;
     element.reset();
     if (!current) {
       heading.textContent = "Write a review";
@@ -138,6 +200,7 @@ export function createReviewEditor({ media, review = null, onSaved, onDeleted } 
       savedState.hidden = true;
       legacyTitle.hidden = true;
       legacyTitleValue.textContent = "";
+      closeActionsMenu();
       setStatus("");
       paint();
       return;
@@ -148,12 +211,13 @@ export function createReviewEditor({ media, review = null, onSaved, onDeleted } 
       input.checked = input.value === current.visibility;
     });
     spoilerInput.checked = Boolean(current.contains_spoilers);
-    heading.textContent = "Edit your review";
-    element.setAttribute("aria-label", "Edit your review");
+    heading.textContent = editing ? "Edit your review" : "Your review";
+    element.setAttribute("aria-label", editing ? "Edit your review" : "Your saved review");
     savedState.textContent = `Saved as ${current.visibility === "public" ? "Public" : "Private"}${current.contains_spoilers ? " · Contains spoilers" : ""}.`;
     savedState.hidden = false;
     legacyTitleValue.textContent = current.title ?? "";
     legacyTitle.hidden = !current.title;
+    closeActionsMenu();
     setStatus("");
     paint();
   }
@@ -163,9 +227,73 @@ export function createReviewEditor({ media, review = null, onSaved, onDeleted } 
     paint();
   }
 
+  async function removeReview() {
+    if (busy || !current) return;
+    const title = current.media?.title ?? media?.title ?? "this title";
+    if (!window.confirm(`Delete your review of “${title}”? This cannot be undone.`)) return;
+
+    closeActionsMenu();
+    busy = true;
+    setStatus("Deleting your review…");
+    paint();
+    try {
+      await reviewService.remove(current.id);
+      load(null);
+      setStatus("Review deleted.", "success");
+      onDeleted?.();
+    } catch (error) {
+      setStatus(error.message, "error");
+    } finally {
+      busy = false;
+      paint();
+    }
+  }
+
   bodyInput.addEventListener("input", handleInput);
   spoilerInput.addEventListener("change", handleInput);
   visibilityInputs.forEach((input) => input.addEventListener("change", handleInput));
+
+  actionsToggle.addEventListener("click", () => {
+    if (actionsMenu.hidden) openActionsMenu();
+    else closeActionsMenu();
+  });
+
+  actionsMenu.addEventListener("click", async (event) => {
+    const action = event.target.closest("[data-action]")?.dataset.action;
+    if (!action) return;
+    if (action === "edit") {
+      load(current, true);
+      return;
+    }
+    if (action === "cancel") {
+      load(current, false);
+      onCancel?.();
+      return;
+    }
+    if (action === "delete") {
+      await removeReview();
+      return;
+    }
+    if (action === "save") {
+      closeActionsMenu();
+      element.requestSubmit();
+    }
+  });
+
+  actionsMenu.addEventListener("keydown", moveMenuFocus);
+
+  element.addEventListener("click", (event) => {
+    if (event.target instanceof Element && !event.target.closest(".review-actions")) {
+      closeActionsMenu();
+    }
+  });
+
+  element.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !actionsMenu.hidden) {
+      event.preventDefault();
+      closeActionsMenu({ restoreFocus: true });
+    }
+  });
 
   element.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -201,8 +329,9 @@ export function createReviewEditor({ media, review = null, onSaved, onDeleted } 
         ? await reviewService.update(current.id, payload)
         : await reviewService.saveForMedia(media, payload);
       current = saved;
-      heading.textContent = "Edit your review";
-      element.setAttribute("aria-label", "Edit your review");
+      editing = false;
+      heading.textContent = "Your review";
+      element.setAttribute("aria-label", "Your saved review");
       savedState.textContent = `Saved as ${saved.visibility === "public" ? "Public" : "Private"}${saved.contains_spoilers ? " · Contains spoilers" : ""}.`;
       savedState.hidden = false;
       legacyTitleValue.textContent = saved.title ?? "";
@@ -222,32 +351,11 @@ export function createReviewEditor({ media, review = null, onSaved, onDeleted } 
     }
   });
 
-  deleteButton.addEventListener("click", async () => {
-    if (busy || !current) return;
-    const title = current.media?.title ?? media?.title ?? "this title";
-    if (!window.confirm(`Delete your review of “${title}”? This cannot be undone.`)) return;
-
-    busy = true;
-    setStatus("Deleting your review…");
-    paint();
-    try {
-      await reviewService.remove(current.id);
-      load(null);
-      setStatus("Review deleted.", "success");
-      onDeleted?.();
-    } catch (error) {
-      setStatus(error.message, "error");
-    } finally {
-      busy = false;
-      paint();
-    }
-  });
-
-  load(current);
+  load(current, startInEditMode);
   return {
     element,
-    refresh(review) {
-      load(review);
+    refresh(nextReview) {
+      load(nextReview);
     }
   };
 }
