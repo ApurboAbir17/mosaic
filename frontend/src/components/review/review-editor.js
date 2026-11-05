@@ -68,10 +68,10 @@ export function createReviewEditor({
       <input type="checkbox" data-spoilers>
       <span>This review contains spoilers</span>
     </label>
-    <button class="button button-primary review-submit" type="submit" data-submit>Publish review</button>
+    <button class="button button-primary review-submit" type="submit" data-submit data-tooltip="Publish review">Publish review</button>
     <div class="review-actions" data-review-actions hidden>
       <button class="button button-primary" type="button" data-actions-toggle
-        aria-haspopup="menu" aria-expanded="false">Review actions</button>
+        aria-haspopup="menu" aria-expanded="false" data-tooltip="Review actions">Review actions</button>
       <div class="review-action-menu" role="menu" data-actions-menu hidden>
         <button type="button" role="menuitem" data-action="edit">Edit review</button>
         <button type="button" role="menuitem" data-action="save">Save changes</button>

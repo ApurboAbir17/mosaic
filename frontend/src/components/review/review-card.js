@@ -42,7 +42,7 @@ export function reviewCard(review) {
       <div class="review-card-body-wrap ${spoiler ? "is-concealed" : ""}" data-spoiler-wrap>
         ${spoiler ? `<p class="review-spoiler-note"><span class="badge badge-accent">Spoiler</span> This review discusses plot details.</p>` : ""}
         <p class="review-card-body" data-spoiler-body>${escapeHtml(review.body)}</p>
-        ${spoiler ? `<button class="button button-ghost review-reveal" type="button" data-reveal-spoiler>Reveal spoiler</button>` : ""}
+        ${spoiler ? `<button class="button button-ghost review-reveal" type="button" data-reveal-spoiler data-tooltip="Reveal spoiler">Reveal spoiler</button>` : ""}
       </div>
     </article>`;
 }
@@ -56,6 +56,7 @@ export function bindSpoilerReveals(container) {
       if (!wrap) return;
       const concealed = wrap.classList.toggle("is-concealed");
       button.textContent = concealed ? "Reveal spoiler" : "Hide spoiler";
+      button.setAttribute("data-tooltip", button.textContent);
     });
   });
 }

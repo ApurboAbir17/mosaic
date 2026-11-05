@@ -124,7 +124,7 @@ export function createSearchSuggestions({ input, form, onSelect }) {
     list.innerHTML = `
       <li class="search-suggestions-header">
         <span>Recent searches</span>
-        <button class="search-suggestions-clear" type="button" aria-label="Clear all recent searches">Clear all</button>
+        <button class="search-suggestions-clear" type="button" aria-label="Clear all recent searches" data-tooltip="Clear all recent searches">Clear all</button>
       </li>
       ${recent
         .map(
@@ -145,6 +145,7 @@ export function createSearchSuggestions({ input, form, onSelect }) {
             class="search-suggestion-remove"
             type="button"
             aria-label="Remove ${escapeHtml(term)} from recent searches"
+            data-tooltip="Remove ${escapeHtml(term)} from recent searches"
             data-remove-recent="${escapeHtml(term)}"
           >×</button>
         </li>

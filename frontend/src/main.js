@@ -1,4 +1,5 @@
 import { createSearchSuggestions } from "./components/search/search-suggestions.js";
+import "./components/tooltip/tooltip.js";
 import { renderExplorePage } from "./pages/explore/explore.js";
 import { renderSearchLanding, renderSearchPage } from "./pages/search/search.js";
 import { parseMediaRoute, renderMediaDetailsPage } from "./pages/media/media-details.js";
@@ -77,6 +78,7 @@ function updateThemeToggle() {
   const isLight = resolved === "light";
   themeToggle.setAttribute("aria-pressed", String(isLight));
   themeToggle.textContent = isLight ? "Use dark theme" : "Use light theme";
+  themeToggle.setAttribute("data-tooltip", themeToggle.textContent);
 }
 
 // applyThemeWithAccountSave applies the theme immediately and, for a signed-in
@@ -190,6 +192,7 @@ function setSidebarCollapsed(isCollapsed) {
   appShell.classList.toggle("sidebar-is-collapsed", isCollapsed);
   sidebarToggle.setAttribute("aria-expanded", String(!isCollapsed));
   sidebarToggle.setAttribute("aria-label", isCollapsed ? "Expand sidebar" : "Collapse sidebar");
+  sidebarToggle.setAttribute("data-tooltip", isCollapsed ? "Expand sidebar" : "Collapse sidebar");
 }
 
 function renderPlaceholder(title) {
@@ -263,6 +266,7 @@ function updateAuthControls() {
     }
   }
   profileButton.setAttribute("aria-label", currentUser ? `Open account menu for ${currentUser.email}` : "Open profile menu");
+  profileButton.setAttribute("data-tooltip", currentUser ? `Open account menu for ${currentUser.email}` : "Open profile menu");
 }
 
 async function logout() {
@@ -488,6 +492,7 @@ sidebarToggle.addEventListener("click", () => {
     sidebarOverlay.classList.toggle("sidebar-overlay-visible", isOpen);
     sidebarToggle.setAttribute("aria-expanded", String(isOpen));
     sidebarToggle.setAttribute("aria-label", isOpen ? "Close sidebar" : "Open sidebar");
+    sidebarToggle.setAttribute("data-tooltip", isOpen ? "Close sidebar" : "Open sidebar");
     return;
   }
 
@@ -499,6 +504,7 @@ sidebarOverlay.addEventListener("click", () => {
   sidebarOverlay.classList.remove("sidebar-overlay-visible");
   sidebarToggle.setAttribute("aria-expanded", "false");
   sidebarToggle.setAttribute("aria-label", "Open sidebar");
+  sidebarToggle.setAttribute("data-tooltip", "Open sidebar");
 });
 
 loginButton.addEventListener("click", () => {
